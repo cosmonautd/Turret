@@ -37,7 +37,7 @@ CV_CAP_PROP_FRAME_WIDTH  = 3;
 CV_CAP_PROP_FRAME_HEIGHT = 4;
 
 # Soundcat object
-sound = soundcat.Soundcat(pps=1.0/30)
+sound = soundcat.Soundcat(pps=1.0/5)
 sound.add_category('init', 'resources/sounds/init')
 sound.add_category('detected', 'resources/sounds/detected')
 sound.add_category('quit', 'resources/sounds/quit')
@@ -62,6 +62,9 @@ class Gui:
         self.gtk.connect_signals(self)
 
         self.Frame = self.gtk.get_object("Frame")
+        self.SilentSwitch = self.gtk.get_object("SilentSwitch")
+
+        self.init_silent_switch()
 
         self.init_camera()
         self.last_frame = None
@@ -74,6 +77,23 @@ class Gui:
             self.MainWindow.show_all()
 
         if not SILENT: sound.play("init")
+
+    def init_silent_switch(self):
+        """
+        Connect the method update_silent_switch() to SilentSwitch.
+        Set initial state as defined in the command line arguments.
+        """
+        self.SilentSwitch.connect("notify::active", self.update_silent_switch)
+        self.SilentSwitch.set_active(SILENT)
+
+    def update_silent_switch(self, switch, params):
+        """
+        SILENT defines if the turret speaker modules are on or off.
+        The state of the silent switch updates the global variable SILENT.
+        """
+        global SILENT
+        if self.SilentSwitch.get_active(): SILENT = True
+        else: SILENT = False
 
     def init_camera(self):
         """
