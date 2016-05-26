@@ -25,6 +25,10 @@ parser.add_argument("-m", "--mode", help="The detection mode")
 
 args = parser.parse_args();
 
+# Turret global variables
+SILENT = args.silent
+MODE = args.mode
+
 # Width and height of the frames our turret will process
 WIDTH  = 640;
 HEIGHT = 480;
@@ -33,7 +37,7 @@ CV_CAP_PROP_FRAME_WIDTH  = 3;
 CV_CAP_PROP_FRAME_HEIGHT = 4;
 
 # Soundcat object
-sound = soundcat.Soundcat(pps=1.0/60)
+sound = soundcat.Soundcat(pps=1.0/30)
 sound.add_category('init', 'resources/sounds/init')
 sound.add_category('detected', 'resources/sounds/detected')
 sound.add_category('quit', 'resources/sounds/quit')
@@ -69,7 +73,7 @@ class Gui:
             self.MainWindow.connect("delete-event", self.close_button_pressed)
             self.MainWindow.show_all()
 
-        sound.play("init")
+        if not SILENT: sound.play("init")
 
     def init_camera(self):
         """
@@ -100,15 +104,15 @@ class Gui:
         """
         retval, frame = self.camera.read()
 
-        if args.mode == None or args.mode == 'default':
+        if MODE == None or MODE == 'default':
             frame, decision = detect.old_detection(frame);
-        elif args.mode == 'motion-detection':
+        elif MODE == 'motion-detection':
             if self.last_frame == None:
                 self.last_frame = frame
             frame, self.last_frame, decision = detect.motion_detection(frame, self.last_frame);
 
         if decision == True:
-            sound.play("detected", use_pps=True)
+            if not SILENT: sound.play("detected", use_pps=True)
 
         cv2.imwrite(".frame.jpg", frame)
         pixbuf_frame = GdkPixbuf.Pixbuf.new_from_file(".frame.jpg")
@@ -119,7 +123,7 @@ def clean():
     """
     Use this to close the turret's modules when shutting down.
     """
-    sound.play('quit')
+    if not SILENT: sound.play('quit')
     pass
 
 def sigint_handler(signum, instant):
