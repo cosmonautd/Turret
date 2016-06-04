@@ -27,7 +27,7 @@ args = parser.parse_args();
 
 # Turret global variables
 SILENT = args.silent
-MODE = args.mode
+MODE = args.mode or 'default'
 
 # Width and height of the frames our turret will process
 WIDTH  = 640;
@@ -63,8 +63,10 @@ class Gui:
 
         self.Frame = self.gtk.get_object("Frame")
         self.SilentSwitch = self.gtk.get_object("SilentSwitch")
+        self.DetectionModeCombo = self.gtk.get_object("DetectionModeCombo")
 
         self.init_silent_switch()
+        self.init_detectionmode_combo()
 
         self.init_camera()
         self.last_frame = None
@@ -94,6 +96,24 @@ class Gui:
         global SILENT
         if self.SilentSwitch.get_active(): SILENT = True
         else: SILENT = False
+
+    def init_detectionmode_combo(self):
+        """
+        Connect the method update_detectionmode_combo() to DetectionModeCombo.
+        Set initial state as defined in the command line arguments.
+        """
+        self.DetectionModeCombo.connect("changed", self.update_detectionmode_combo)
+        for mode in detect.detection_modes:
+            self.DetectionModeCombo.append(mode, detect.mode_description[mode])
+        self.DetectionModeCombo.set_active_id(MODE)
+
+    def update_detectionmode_combo(self, combo):
+        """
+        MODE defines the detection algorithm our turret is running
+        The selected option updates the global variable MODE.
+        """
+        global MODE
+        MODE = self.DetectionModeCombo.get_active_id()
 
     def init_camera(self):
         """
