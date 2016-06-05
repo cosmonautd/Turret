@@ -3,12 +3,14 @@ import sys
 import array
 import signal
 import argparse
+import datetime
 import textwrap
 from PIL import Image
 from gi.repository import Gtk, GdkPixbuf, GObject, GLib, Gio
 
 from modules import detect
 from modules import soundcat
+from modules import save
 
 # Arguments parsing
 parser = argparse.ArgumentParser(description="People detection turret. Detects people and optionally dispenses product.",
@@ -21,12 +23,15 @@ parser = argparse.ArgumentParser(description="People detection turret. Detects p
                                 '''), formatter_class=argparse.RawDescriptionHelpFormatter,)
 parser.add_argument("-s", "--silent", help="Shut down the turret's sound modules.", action="store_true");
 parser.add_argument("-g", "--gui", help="Show a graphical user interface.", action="store_true");
+parser.add_argument("-d", "--save_on_disk", help="Saves images on disk hierarchically by date", action="store_true");
 parser.add_argument("-m", "--mode", help="The detection mode")
 
 args = parser.parse_args();
 
 # Turret global variables
 SILENT = args.silent
+GUI = args.gui
+SAVE_ON_DISK = args.save_on_disk
 MODE = args.mode or 'default'
 
 # Width and height of the frames our turret will process
@@ -63,9 +68,11 @@ class Gui:
 
         self.Frame = self.gtk.get_object("Frame")
         self.SilentSwitch = self.gtk.get_object("SilentSwitch")
+        self.SaveOnDiskSwitch = self.gtk.get_object("SaveOnDiskSwitch")
         self.DetectionModeCombo = self.gtk.get_object("DetectionModeCombo")
 
         self.init_silent_switch()
+        self.init_saveondisk_switch()
         self.init_detectionmode_combo()
 
         self.init_camera()
@@ -73,7 +80,7 @@ class Gui:
 
         GLib.idle_add(self.update_frame)
 
-        if args.gui:
+        if GUI:
             self.MainWindow = self.gtk.get_object("MainWindow")
             self.MainWindow.connect("delete-event", self.close_button_pressed)
             self.MainWindow.show_all()
@@ -94,8 +101,23 @@ class Gui:
         The state of the silent switch updates the global variable SILENT.
         """
         global SILENT
-        if self.SilentSwitch.get_active(): SILENT = True
-        else: SILENT = False
+        SILENT = self.SilentSwitch.get_active()
+
+    def init_saveondisk_switch(self):
+        """
+        Connect the method update_saveondisk_switch() to SaveOnDiskSwitch.
+        Set initial state as defined in the command line arguments.
+        """
+        self.SaveOnDiskSwitch.connect("notify::active", self.update_saveondisk_switch)
+        self.SaveOnDiskSwitch.set_active(SAVE_ON_DISK)
+
+    def update_saveondisk_switch(self, switch, params):
+        """
+        SAVE_ON_DISK defines if the turret saves detections on disk.
+        The state of the save on disk switch updates the global variable SAVE_ON_DISK.
+        """
+        global SAVE_ON_DISK
+        SAVE_ON_DISK = self.SaveOnDiskSwitch.get_active()
 
     def init_detectionmode_combo(self):
         """
@@ -152,6 +174,7 @@ class Gui:
             frame, self.last_frame, decision = detect.motion_detection(frame, self.last_frame);
 
         if decision == True:
+            if SAVE_ON_DISK: save.save(frame, datetime.datetime.now())
             if not SILENT: sound.play("detected", use_pps=True)
 
         cv2.imwrite(".frame.jpg", frame)
