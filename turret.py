@@ -166,10 +166,10 @@ class Gui:
         """
         retval, frame = self.camera.read()
 
-        if MODE == None or MODE == 'default':
+        if MODE is None or MODE == 'default':
             frame, decision = detect.old_detection(frame);
         elif MODE == 'motion-detection':
-            if self.last_frame == None:
+            if self.last_frame is None:
                 self.last_frame = frame
             frame, self.last_frame, decision = detect.motion_detection(frame, self.last_frame);
 

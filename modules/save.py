@@ -202,8 +202,8 @@ class Drive(object):
 
         try:
             file_list = self.googledrive.ListFile({'q': "'%s' in parents and trashed=false" % root}).GetList()
-        except Exception, exception:
-            print exception
+        except Exception as exception:
+            print (exception)
 
         if file_list:
             exists, folder = self.folder_exists(folder_name, file_list)

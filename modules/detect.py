@@ -1,5 +1,5 @@
 import cv2
-import imgutils
+from . import imgutils
 
 detection_modes = [ 'default',
                     'motion-detection']
