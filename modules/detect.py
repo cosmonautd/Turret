@@ -11,14 +11,28 @@ mode_description = { 'default': 'Upperbody and face detection',
 # We use classifiers commonly found in opencv packages
 CASCADE_UPPERBODY = cv2.CascadeClassifier("resources/haarcascades/haarcascade_mcs_upperbody.xml")
 CASCADE_FACE = cv2.CascadeClassifier("resources/haarcascades/haarcascade_frontalface_alt.xml")
+CASCADE_PROFILE_FACE = cv2.CascadeClassifier("resources/haarcascades/haarcascade_profileface.xml")
 
-def old_detection(frame, cascade_upperbody=CASCADE_UPPERBODY, cascade_face=CASCADE_FACE):
+def single_cascade(frame, cascade=CASCADE_UPPERBODY):
+
+    # Detect cascade pattern in the frame and draw a green rectangle around it,
+    # if pattern is found.
+    (rects, frame) = imgutils.detect_pattern(frame, cascade, (60,60))
+    frame = imgutils.box(rects, frame)
+
+    found = False;
+    if len(rects) > 0:
+        found = True
+
+    return frame, found
+
+def double_cascade(frame, cascade_upperbody=CASCADE_UPPERBODY, cascade_face=CASCADE_FACE):
 
     # Detect upperbodies in the frame and draw a green rectangle around it, if found
     (rects_upperbody, frame) = imgutils.detect_pattern(frame, cascade_upperbody, (60,60))
     frame = imgutils.box(rects_upperbody, frame)
     rects_face = [];
-    decision = False;
+    found = False;
     # Search for upperbodies!
     if len(rects_upperbody) > 0:
 
@@ -41,15 +55,14 @@ def old_detection(frame, cascade_upperbody=CASCADE_UPPERBODY, cascade_face=CASCA
                 frame = imgutils.box([[xf, yf, wf, hf]], frame, (0, 0, 255))
 
     if len(rects_face) > 0:
-        decision = True;
+        found = True;
 
-    return frame, decision
-
+    return frame, found
 
 # based on a tutorial from http://www.pyimagesearch.com/
 def motion_detection(frame, first_frame, min_area=200):
 
-    decision = False
+    found = False
 
     raw_frame = frame.copy()
 
@@ -80,6 +93,6 @@ def motion_detection(frame, first_frame, min_area=200):
         # compute the bounding box for the contour, draw it on the frame and update the text
         (x, y, w, h) = cv2.boundingRect(c)
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        decision = True
+        found = True
 
-    return frame, raw_frame, decision
+    return frame, raw_frame, found

@@ -167,13 +167,13 @@ class Gui:
         retval, frame = self.camera.read()
 
         if MODE is None or MODE == 'default':
-            frame, decision = detect.old_detection(frame);
+            frame, found = detect.double_cascade(frame);
         elif MODE == 'motion-detection':
             if self.last_frame is None:
                 self.last_frame = frame
-            frame, self.last_frame, decision = detect.motion_detection(frame, self.last_frame);
+            frame, self.last_frame, found = detect.motion_detection(frame, self.last_frame);
 
-        if decision == True:
+        if found == True:
             if SAVE_ON_DISK: save.save(frame, datetime.datetime.now())
             if not SILENT: sound.play("detected", use_pps=True)
 
