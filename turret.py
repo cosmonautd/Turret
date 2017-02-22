@@ -6,6 +6,9 @@ import argparse
 import datetime
 import textwrap
 from PIL import Image
+
+import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GdkPixbuf, GObject, GLib, Gio
 
 from modules import detect
