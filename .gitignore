@@ -64,3 +64,4 @@ target/
 .frame*
 *~
 detected/
+client_secrets.json

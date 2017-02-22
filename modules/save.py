@@ -10,6 +10,8 @@ import sys, time, mimetypes
 import socket
 import cv2
 from collections import deque
+import threading
+import time
 
 def save(img, img_time, uploadqueue=None):
     """Save images to disc or a Google Drive account.
@@ -84,7 +86,16 @@ class UploadQueue(object):
             Raises:
 
         """
-        self.uploadqueue.append(img_time);
+        if len(self.uploadqueue) == 0:
+            print(str(img_time)[:19] , "[ADDED TO UPLOAD LIST]")
+            self.uploadqueue.append(img_time)
+        elif (not str(img_time)[:19] == str(self.uploadqueue[-1])[:19]):
+            print(str(img_time)[:19] , "[ADDED TO UPLOAD LIST]")
+            self.uploadqueue.append(img_time)
+
+
+    def start(self):
+        threading.Thread(target=self.uploadloop, args=()).start()
 
     def uploadloop(self):
         """UploadQueue main method. Continuously uploads the first element of the queue.
@@ -96,6 +107,7 @@ class UploadQueue(object):
             Raises:
 
         """
+        print("Starting upload loop")
         while self.running and self.drive:
             if self.drive and len(self.uploadqueue) > 0:
                 img_time = self.uploadqueue[0];
@@ -105,13 +117,16 @@ class UploadQueue(object):
                     upload_path = self.drive.get_link(img_time);
                     time.sleep(1);
                 if self.drive:
-                    self.drive.save_img("/".join(("detected", str(img_time.year), str(img_time.month) + ". "
-                                         + img_time.strftime('%B'), str(img_time.day), str(img_time)[:19] + ".png")), upload_path);
+                    disk_path = "/".join(("detected", str(img_time.year), str(img_time.month) + ". "
+                                         + img_time.strftime('%B'), str(img_time.day), str(img_time)[:19] + ".png"))
+                    print(str(img_time)[:19], "[UPLOAD STARTED]")
+                    self.drive.save_img(disk_path, upload_path);
+                    print(str(img_time)[:19], "[UPLOAD FINISHED]")
+            time.sleep(1)
 
     def quit(self):
         self.drive = None;
         self.running = False;
-
 
 
 class Drive(object):
@@ -121,13 +136,9 @@ class Drive(object):
         account. This same API can be used to manage the new Google
         Drive. This class saves images according to date and time of
         capture in a hierarchical time structure year/month/day/image.
-        As this class uses old login methods, it may not be safe.
-        This is a test only class. Usage example below:
 
         >>> import save;
-        >>> email = "username@gmail.com";
-        >>> password = "yourpassword-becareful";
-        >>> drive = save.Drive(email, password);
+        >>> drive = save.Drive();
         >>> current_time = datetime.datetime.now();
         >>> folder_link = drive.get_link(current_time);
         >>> drive.save_img("path/to/image.jpg", folder_link);
@@ -141,8 +152,7 @@ class Drive(object):
         """Drive constructor.
 
             Args:
-                email: a string, a valid gmail account.
-                raw_password: a string, matching raw password for email.
+                None
 
             Returns:
                 A Drive object.
@@ -151,7 +161,8 @@ class Drive(object):
                 No information.
 
         """
-
+        # TODO: Explain https://googledrive.github.io/PyDrive/docs/build/html/quickstart.html
+        # When exception happens here.
         self.g = GoogleAuth()
         self.g.LocalWebserverAuth()
         self.googledrive = GoogleDrive(self.g)
@@ -183,7 +194,7 @@ class Drive(object):
             Returns:
                 A link to the matching folder in the specified Google
                 Drive account, according to time. The matching folder
-                is detected/year/month/day.
+                is Turret/year/month/day.
 
             Raises:
                 No information.
@@ -191,9 +202,9 @@ class Drive(object):
         """
 
         position = pos
-        structure = ['detected', 'year', 'month', 'day']
+        structure = ['Turret', 'year', 'month', 'day']
 
-        if   structure[position] == 'detected': folder_name = 'detected'
+        if   structure[position] == 'Turret': folder_name = 'Turret'
         elif structure[position] == 'year':     folder_name = str(img_time.year)
         elif structure[position] == 'month':    folder_name = str(img_time.month) + ". " + img_time.strftime('%B')
         elif structure[position] == 'day':      folder_name = str(img_time.day)
@@ -215,7 +226,7 @@ class Drive(object):
                     return self.get_link(img_time, root=folder['id'], pos=position+1)
             else:
                 new_folder = self.create_subfolder(root, folder_name)
-                if structure[position] == 'detected':
+                if structure[position] == 'Turret':
                     new_folder = self.create_subfolder(new_folder['id'], str(img_time.year))
                     new_folder = self.create_subfolder(new_folder['id'], str(img_time.month) + ". " + img_time.strftime('%B'))
                     new_folder = self.create_subfolder(new_folder['id'], str(img_time.day))

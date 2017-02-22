@@ -2,6 +2,7 @@ import cv2
 import sys
 import array
 import signal
+import locale
 import argparse
 import datetime
 import textwrap
@@ -26,15 +27,20 @@ parser = argparse.ArgumentParser(description="People detection turret. Detects p
                                 '''), formatter_class=argparse.RawDescriptionHelpFormatter,)
 parser.add_argument("-s", "--silent", help="Shut down the turret's sound modules.", action="store_true");
 parser.add_argument("-g", "--gui", help="Show a graphical user interface.", action="store_true");
-parser.add_argument("-d", "--save_on_disk", help="Saves images on disk hierarchically by date", action="store_true");
+parser.add_argument("-d", "--save_to_disk", help="Saves images on disk hierarchically by date", action="store_true");
+parser.add_argument("-G", "--backup_gdrive", help="Saves images on Google Drive", action="store_true");
 parser.add_argument("-m", "--mode", help="The detection mode")
 
 args = parser.parse_args();
 
+# Set locale (standardize month names)
+locale.setlocale(locale.LC_TIME, "en_US.utf8")
+
 # Turret global variables
 SILENT = args.silent
 GUI = args.gui
-SAVE_ON_DISK = args.save_on_disk
+SAVE_TO_DISK = args.save_to_disk
+BACKUP_GOOGLEDRIVE = args.backup_gdrive and SAVE_TO_DISK
 MODE = args.mode or 'default'
 
 # Width and height of the frames our turret will process
@@ -49,6 +55,28 @@ sound = soundcat.Soundcat(pps=1.0/5)
 sound.add_category('init', 'resources/sounds/init')
 sound.add_category('detected', 'resources/sounds/detected')
 sound.add_category('quit', 'resources/sounds/quit')
+
+# Managing Google Drive backup setting
+drive = None
+upload = None
+
+def init_googledrive():
+    """
+    Initiate a Drive and UploadQueue objects for Google Drive backup
+    """
+    global drive, upload
+    # Only execute once
+    if drive == None and upload == None:
+        # Drive object
+        drive = save.Drive()
+
+        # UploadQueue object
+        upload = save.UploadQueue(drive)
+        upload.start()
+
+# Set initial Google Drive Backup configuration
+if BACKUP_GOOGLEDRIVE:
+    init_googledrive()
 
 class Gui:
     """
@@ -71,11 +99,13 @@ class Gui:
 
         self.Frame = self.gtk.get_object("Frame")
         self.SilentSwitch = self.gtk.get_object("SilentSwitch")
-        self.SaveOnDiskSwitch = self.gtk.get_object("SaveOnDiskSwitch")
+        self.SaveToDiskSwitch = self.gtk.get_object("SaveToDiskSwitch")
+        self.BackupGoogleDriveSwitch = self.gtk.get_object("BackupGoogleDriveSwitch")
         self.DetectionModeCombo = self.gtk.get_object("DetectionModeCombo")
 
         self.init_silent_switch()
-        self.init_saveondisk_switch()
+        self.init_savetodisk_switch()
+        self.init_backup_googledrive_switch()
         self.init_detectionmode_combo()
 
         self.init_camera()
@@ -106,21 +136,45 @@ class Gui:
         global SILENT
         SILENT = self.SilentSwitch.get_active()
 
-    def init_saveondisk_switch(self):
+    def init_savetodisk_switch(self):
         """
-        Connect the method update_saveondisk_switch() to SaveOnDiskSwitch.
+        Connect the method update_savetodisk_switch() to SaveToDiskSwitch.
         Set initial state as defined in the command line arguments.
         """
-        self.SaveOnDiskSwitch.connect("notify::active", self.update_saveondisk_switch)
-        self.SaveOnDiskSwitch.set_active(SAVE_ON_DISK)
+        self.SaveToDiskSwitch.connect("notify::active", self.update_savetodisk_switch)
+        self.SaveToDiskSwitch.set_active(SAVE_TO_DISK)
 
-    def update_saveondisk_switch(self, switch, params):
+    def update_savetodisk_switch(self, switch, params):
         """
-        SAVE_ON_DISK defines if the turret saves detections on disk.
-        The state of the save on disk switch updates the global variable SAVE_ON_DISK.
+        SAVE_TO_DISK defines if the turret saves detections on disk.
+        The state of the save on disk switch updates the global variable SAVE_TO_DISK.
+        It Also changes the state of cloud backup switches and variables.
         """
-        global SAVE_ON_DISK
-        SAVE_ON_DISK = self.SaveOnDiskSwitch.get_active()
+        global SAVE_TO_DISK
+        SAVE_TO_DISK = self.SaveToDiskSwitch.get_active()
+
+        # Update backup elements. They are active and sensitive only if SAVE_TO_DISK is enabled
+        self.BackupGoogleDriveSwitch.set_active(BACKUP_GOOGLEDRIVE and SAVE_TO_DISK)
+        self.BackupGoogleDriveSwitch.set_sensitive(SAVE_TO_DISK)
+
+    def init_backup_googledrive_switch(self):
+        """
+        Connect the method update_backup_googledrive_switch() to BackupGoogleDriveSwitch.
+        Set initial state as defined in the command line arguments.
+        """
+        self.BackupGoogleDriveSwitch.connect("notify::active", self.update_backup_googledrive_switch)
+        self.BackupGoogleDriveSwitch.set_active(BACKUP_GOOGLEDRIVE and SAVE_TO_DISK)
+        self.BackupGoogleDriveSwitch.set_sensitive(SAVE_TO_DISK)
+
+    def update_backup_googledrive_switch(self, switch, params):
+        """
+        BACKUP_GOOGLEDRIVE defines if the turret saves detections on Google Drive.
+        The state of the Google Drive switch updates the global variable BACKUP_GOOGLEDRIVE.
+        """
+        global BACKUP_GOOGLEDRIVE, SAVE_TO_DISK
+        BACKUP_GOOGLEDRIVE = self.BackupGoogleDriveSwitch.get_active() and SAVE_TO_DISK
+        if BACKUP_GOOGLEDRIVE:
+            init_googledrive()
 
     def init_detectionmode_combo(self):
         """
@@ -177,7 +231,9 @@ class Gui:
             frame, self.last_frame, found = detect.motion_detection(frame, self.last_frame);
 
         if found == True:
-            if SAVE_ON_DISK: save.save(frame, datetime.datetime.now())
+            now = datetime.datetime.now()
+            if SAVE_TO_DISK: save.save(frame, now)
+            if BACKUP_GOOGLEDRIVE: upload.append(now)
             if not SILENT: sound.play("detected", use_pps=True)
 
         cv2.imwrite(".frame.jpg", frame)
@@ -190,6 +246,7 @@ def clean():
     Use this to close the turret's modules when shutting down.
     """
     if not SILENT: sound.play('quit')
+    if upload: upload.quit()
     pass
 
 def sigint_handler(signum, instant):
