@@ -21,8 +21,8 @@ parser = argparse.ArgumentParser(description="People detection turret. Detects p
                                     epilog=textwrap.dedent('''
                                 ...    Available modes:
                                 ...    --------------------------------
-                                ...    default:             Upperbody and face detection
-                                ...    motion-detection:    Motion detection function based on background subtraction.
+                                ...    motion:              Motion detection function based on background subtraction.
+                                ...    upperbody-face:      Upperbody and face detection
 
                                 '''), formatter_class=argparse.RawDescriptionHelpFormatter,)
 parser.add_argument("-s", "--silent", help="Shut down the turret's sound modules.", action="store_true");
@@ -41,7 +41,7 @@ SILENT = args.silent
 GUI = args.gui
 SAVE_TO_DISK = args.save_to_disk
 BACKUP_GOOGLEDRIVE = args.backup_gdrive and SAVE_TO_DISK
-MODE = args.mode or 'default'
+MODE = args.mode or 'motion'
 
 # Width and height of the frames our turret will process
 WIDTH  = 640;
@@ -223,14 +223,16 @@ class Gui:
         """
         retval, frame = self.camera.read()
 
-        if MODE is None or MODE == 'default':
-            frame, found = detect.double_cascade(frame);
-        elif MODE == 'motion-detection':
+        found = None
+
+        if MODE is None or MODE == 'motion':
             if self.last_frame is None:
                 self.last_frame = frame
             frame, self.last_frame, found = detect.motion_detection(frame, self.last_frame);
+        elif MODE == 'upperbody-face':
+            frame, found = detect.double_cascade(frame);
 
-        if found == True:
+        if found:
             now = datetime.datetime.now()
             if SAVE_TO_DISK: save.save(frame, now)
             if BACKUP_GOOGLEDRIVE: upload.append(now)

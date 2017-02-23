@@ -1,11 +1,11 @@
 import cv2
 from . import imgutils
 
-detection_modes = [ 'default',
-                    'motion-detection']
+detection_modes = [ 'motion',
+                    'upperbody-face']
 
-mode_description = { 'default': 'Upperbody and face detection',
-                       'motion-detection' : 'Motion detection' }
+mode_description = { 'motion': 'Motion detection',
+                     'upperbody-face' : 'Upperbody and face detection' }
 
 # Load Haar Cascade Classifiers for upperbody and face
 # We use classifiers commonly found in opencv packages
