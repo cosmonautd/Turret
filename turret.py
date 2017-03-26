@@ -34,7 +34,10 @@ parser.add_argument("-m", "--mode", help="The detection mode")
 args = parser.parse_args();
 
 # Set locale (standardize month names)
-locale.setlocale(locale.LC_TIME, "en_US.utf8")
+if sys.platform == "linux" or sys.platform == "linux2":
+    locale.setlocale(locale.LC_TIME, "en_US.utf8")
+elif sys.platform == "win32":
+    locale.setlocale(locale.LC_TIME, "usa_usa")
 
 # Turret global variables
 SILENT = args.silent
