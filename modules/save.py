@@ -117,7 +117,7 @@ class UploadQueue(object):
         while self.running and self.drive:
             if self.drive and len(self.uploadqueue) > 0:
                 img_time = self.uploadqueue[0];
-                self.uploadqueue.popleft();
+
                 upload_path = None;
                 while not upload_path and self.running:
                     upload_path = self.drive.get_link(img_time);
@@ -126,8 +126,15 @@ class UploadQueue(object):
                     disk_path = "/".join(("detected", str(img_time.year), str(img_time.month) + ". "
                                          + img_time.strftime('%B'), str(img_time.day), str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:19] + "s" + ".png"))
                     print(str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:19] + "s", "[UPLOAD STARTED]")
-                    self.drive.save_img(disk_path, upload_path);
-                    print(str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:19] + "s", "[UPLOAD FINISHED]")
+
+                    try:
+                        self.drive.save_img(disk_path, upload_path);
+                        self.uploadqueue.popleft();
+                        print(str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:19] + "s", "[UPLOAD FINISHED]")
+                    except Exception as e:
+                        print(str(e))
+                        pass
+
             time.sleep(0.1)
 
     def quit(self):
@@ -269,5 +276,9 @@ class Drive(object):
         new_img.SetContentFile(img_path)
         if folder is not None:
             new_img['parents'] = [{u'id': folder['id']}]
-        new_img.Upload()
+
+        try:
+            new_img.Upload()
+        except Exception as e:
+            raise
         return new_img
