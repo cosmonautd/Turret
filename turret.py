@@ -6,6 +6,7 @@ import locale
 import argparse
 import datetime
 import textwrap
+import skvideo.io
 from PIL import Image
 
 import gi
@@ -31,7 +32,7 @@ parser.add_argument("-d", "--save_to_disk", help="Saves images on disk hierarchi
 parser.add_argument("-G", "--backup_gdrive", help="Saves images on Google Drive", action="store_true");
 parser.add_argument("-m", "--mode", help="The detection mode")
 
-args = parser.parse_args();
+args = parser.parse_args()
 
 # Set locale (standardize month names)
 if sys.platform == "linux" or sys.platform == "linux2":
@@ -47,11 +48,11 @@ BACKUP_GOOGLEDRIVE = args.backup_gdrive and SAVE_TO_DISK
 MODE = args.mode or 'motion'
 
 # Width and height of the frames our turret will process
-WIDTH  = 640;
-HEIGHT = 480;
+WIDTH  = 640
+HEIGHT = 480
 # Codes for OpenCV camera settings
-CV_CAP_PROP_FRAME_WIDTH  = 3;
-CV_CAP_PROP_FRAME_HEIGHT = 4;
+CV_CAP_PROP_FRAME_WIDTH  = 3
+CV_CAP_PROP_FRAME_HEIGHT = 4
 
 # Soundcat object
 sound = soundcat.Soundcat(pps=1.0/5)
@@ -203,8 +204,11 @@ class Gui:
         Set camera width and height settings.
         """
         self.camera = cv2.VideoCapture(0)
-        self.camera.set(CV_CAP_PROP_FRAME_WIDTH, WIDTH);
-        self.camera.set(CV_CAP_PROP_FRAME_HEIGHT, HEIGHT);
+        if not self.camera.isOpened():
+            self.camera = skvideo.io.VideoCapture(0)
+        else: 
+            self.camera.set(CV_CAP_PROP_FRAME_WIDTH, WIDTH)
+            self.camera.set(CV_CAP_PROP_FRAME_HEIGHT, HEIGHT)
 
     def close_button_pressed(self, widget, event):
         """
