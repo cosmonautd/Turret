@@ -5,8 +5,9 @@
 
  - Upgrade pip 
 	> python -m pip install --upgrade pip
- - Install other dependencies
-    > pip install pygame Pillow PyDrive scikit-video
+ - Install some dependencies
+    > pip install pygame Pillow PyDrive
+ - Install PyGobject
     > sudo pacman -S python-gobject python2-gobject gtk3
  - Compile OpenCV from source with FFmeg support
 
