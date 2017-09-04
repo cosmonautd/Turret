@@ -6,7 +6,6 @@ import locale
 import argparse
 import datetime
 import textwrap
-import skvideo.io
 from PIL import Image
 
 import gi
@@ -204,11 +203,8 @@ class Gui:
         Set camera width and height settings.
         """
         self.camera = cv2.VideoCapture(0)
-        if not self.camera.isOpened():
-            self.camera = skvideo.io.VideoCapture(0)
-        else: 
-            self.camera.set(CV_CAP_PROP_FRAME_WIDTH, WIDTH)
-            self.camera.set(CV_CAP_PROP_FRAME_HEIGHT, HEIGHT)
+        self.camera.set(CV_CAP_PROP_FRAME_WIDTH, WIDTH)
+        self.camera.set(CV_CAP_PROP_FRAME_HEIGHT, HEIGHT)
 
     def close_button_pressed(self, widget, event):
         """
