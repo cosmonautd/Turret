@@ -25,10 +25,10 @@ parser = argparse.ArgumentParser(description="People detection turret. Detects p
                                 ...    upperbody-face:      Upperbody and face detection
 
                                 '''), formatter_class=argparse.RawDescriptionHelpFormatter,)
-parser.add_argument("-s", "--silent", help="Shut down the turret's sound modules.", action="store_true");
-parser.add_argument("-g", "--gui", help="Show a graphical user interface.", action="store_true");
-parser.add_argument("-d", "--save_to_disk", help="Saves images on disk hierarchically by date", action="store_true");
-parser.add_argument("-G", "--backup_gdrive", help="Saves images on Google Drive", action="store_true");
+parser.add_argument("-s", "--silent", help="Shut down the turret's sound modules.", action="store_true")
+parser.add_argument("-g", "--gui", help="Show a graphical user interface.", action="store_true")
+parser.add_argument("-d", "--save_to_disk", help="Saves images on disk hierarchically by date", action="store_true")
+parser.add_argument("-G", "--backup_gdrive", help="Saves images on Google Drive", action="store_true")
 parser.add_argument("-m", "--mode", help="The detection mode")
 
 args = parser.parse_args()
@@ -231,9 +231,9 @@ class Gui:
         if MODE is None or MODE == 'motion':
             if self.last_frame is None:
                 self.last_frame = frame
-            frame, self.last_frame, found = detect.motion_detection(frame, self.last_frame);
+            frame, self.last_frame, found = detect.motion_detection(frame, self.last_frame)
         elif MODE == 'upperbody-face':
-            frame, found = detect.double_cascade(frame);
+            frame, found = detect.double_cascade(frame)
 
         if found:
             now = datetime.datetime.now()
