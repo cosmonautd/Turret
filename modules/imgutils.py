@@ -100,15 +100,15 @@ def resize(img, width=None, height=None):
     """
     
     # Get initial height and width
-    (h, w) = img.shape[:2];
+    (h, w) = img.shape[:2]
     
     # If just one of the new size parameters is given, keep aspect ratio
     if width and not height:
-        height = h*(100/w);
+        height = h*(100/w)
     elif height and not width:
-        width = w*(100/h);
+        width = w*(100/h)
     elif not height and not width:
-        return img;
+        return img
     
     # Choose interpolation method based on type of operation, shrink or enlarge
     if width*height < w*h:
