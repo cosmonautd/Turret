@@ -13,41 +13,45 @@ CASCADE_UPPERBODY = cv2.CascadeClassifier("resources/haarcascades/haarcascade_mc
 CASCADE_FACE = cv2.CascadeClassifier("resources/haarcascades/haarcascade_frontalface_alt.xml")
 CASCADE_PROFILE_FACE = cv2.CascadeClassifier("resources/haarcascades/haarcascade_profileface.xml")
 
-def single_cascade(frame, cascade=CASCADE_UPPERBODY):
+def single_cascade(frame, cascade=CASCADE_UPPERBODY, return_faces=False):
 
     # Detect cascade pattern in the frame and draw a green rectangle around it,
     # if pattern is found.
     (rects, frame) = imgutils.detect_pattern(frame, cascade, (60,60))
     frame = imgutils.box(rects, frame)
 
-    found = False;
+    found = False
     if len(rects) > 0:
         found = True
 
-    return frame, found
+    if return_faces:
+        return frame, found, rects
+    else:
+        return frame, found
 
-def double_cascade(frame, cascade_upperbody=CASCADE_UPPERBODY, cascade_face=CASCADE_FACE):
+def double_cascade(frame, return_faces=False,
+                    cascade_upperbody=CASCADE_UPPERBODY, cascade_face=CASCADE_FACE):
 
     # Detect upperbodies in the frame and draw a green rectangle around it, if found
     (rects_upperbody, frame) = imgutils.detect_pattern(frame, cascade_upperbody, (60,60))
     frame = imgutils.box(rects_upperbody, frame)
-    rects_face = [];
-    found = False;
+    rects_face = []
+    found = False
     # Search for upperbodies!
     if len(rects_upperbody) > 0:
 
         # For each upperbody detected, search for faces! (Removes false positives)
         for x, y, w, h in rects_upperbody:
-            frame_crop = frame[y:h, x:w];
+            frame_crop = frame[y:h, x:w]
             (rects_face, frame_crop) = imgutils.detect_pattern(frame_crop, cascade_face, (25,25))
 
             # For each face detected, make some drawings around it
             for xf, yf, wf, hf in rects_face:
 
-                xf += x;
-                yf += y;
-                wf += x;
-                hf += y;
+                xf += x
+                yf += y
+                wf += x
+                hf += y
 
                 #cv2.circle(frame, ((w+x)/2, (h+y)/2), 10, (255,0,0), thickness=1, lineType=8, shift=0)
                 #cv2.circle(frame, (wf, hf), 10, (0,0,255), thickness=1, lineType=8, shift=0)
@@ -55,9 +59,12 @@ def double_cascade(frame, cascade_upperbody=CASCADE_UPPERBODY, cascade_face=CASC
                 frame = imgutils.box([[xf, yf, wf, hf]], frame, (0, 0, 255))
 
     if len(rects_face) > 0:
-        found = True;
+        found = True
 
-    return frame, found
+    if return_faces:
+        return frame, found, [ (xf+x, yf+y, wf+x, hf+y) for xf, yf, wf, hf in rects_face for x, y, w, h in rects_upperbody]
+    else:
+        return frame, found
 
 # based on a tutorial from http://www.pyimagesearch.com/
 def motion_detection(frame, first_frame, min_area=200):
