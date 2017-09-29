@@ -6,12 +6,12 @@
  - Upgrade pip and install some dependencies
  
 ```
-python -m pip install --upgrade pip
-sudo pip install pygame Pillow PyDrive
+pip install --upgrade pip
+pip install pygame Pillow PyDrive
 ```
  - Install OpenCV and PyGobject with pacman
 ```
-sudo pacman -S opencv python-gobject python2-gobject gtk3
+pacman -S opencv python-gobject python2-gobject gtk3
 ```
 
 #### Install on Windows ####
