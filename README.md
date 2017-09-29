@@ -7,7 +7,7 @@
  
 ```
 python -m pip install --upgrade pip
-pip install pygame Pillow PyDrive
+pip install --user pygame Pillow PyDrive
 ```
  - Install OpenCV and PyGobject with pacman
 ```
