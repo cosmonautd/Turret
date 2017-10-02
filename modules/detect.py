@@ -13,12 +13,14 @@ CASCADE_UPPERBODY = cv2.CascadeClassifier("resources/haarcascades/haarcascade_mc
 CASCADE_FACE = cv2.CascadeClassifier("resources/haarcascades/haarcascade_frontalface_alt.xml")
 CASCADE_PROFILE_FACE = cv2.CascadeClassifier("resources/haarcascades/haarcascade_profileface.xml")
 
-def single_cascade(frame, cascade=CASCADE_UPPERBODY, return_faces=False):
+def single_cascade(frame, cascade=CASCADE_UPPERBODY, return_faces=False, drawboxes=True):
 
     # Detect cascade pattern in the frame and draw a green rectangle around it,
     # if pattern is found.
     (rects, frame) = imgutils.detect_pattern(frame, cascade, (60,60))
-    frame = imgutils.box(rects, frame)
+
+    if drawboxes:
+        frame = imgutils.box(rects, frame)
 
     found = False
     if len(rects) > 0:

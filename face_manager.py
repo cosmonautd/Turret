@@ -54,6 +54,10 @@ class FaceManager:
         self.name = ""
         self.face_samples_recorded = 0
         self.face_samples = list()
+        self.get_face_samples = False
+
+        self.init_camera()
+        GLib.idle_add(self.camera_preview)
     
     def update_face_manager_database(self):
         """
@@ -138,10 +142,10 @@ class FaceManager:
         """
         """
         self.face_samples_recorded = 0
-        self.init_camera()
         self.NewFaceName.set_sensitive(False)
         self.NewFaceButton.set_sensitive(False)
-        GLib.idle_add(self.get_face_samples)
+        self.get_face_samples = True
+        
 
     def init_camera(self):
         """
@@ -151,8 +155,8 @@ class FaceManager:
         self.camera = cv2.VideoCapture(0)
         self.camera.set(CV_CAP_PROP_FRAME_WIDTH, WIDTH)
         self.camera.set(CV_CAP_PROP_FRAME_HEIGHT, HEIGHT)
-
-    def get_face_samples(self):
+    
+    def camera_preview(self):
         """
         Get a new frame from camera.
         Process this frame.
@@ -162,23 +166,25 @@ class FaceManager:
         retval, frame = self.camera.read()
         frame = imgutils.crop(frame, 70, 320 - 70, 0, 240)
 
-        frame, found, faces = detect.single_cascade(frame, cascade=detect.CASCADE_FACE, return_faces=True)
-
-        if found:
-            self.face_samples_recorded += 1
-            x, y, w, h = faces[0]
-            self.face_samples.append(frame[y:h, x:w])
+        frame, found, faces = detect.single_cascade(frame, cascade=detect.CASCADE_FACE,
+                                                           return_faces=True,
+                                                           drawboxes=self.get_face_samples)
 
         cv2.imwrite(".frame.jpg", frame)
         pixbuf_frame = GdkPixbuf.Pixbuf.new_from_file(".frame.jpg")
         self.FaceFrame.set_from_pixbuf(pixbuf_frame)
 
-        if self.face_samples_recorded < 50:
-            return True
-        else:
-            self.camera.release()
-            self.save_face_samples()
-            return False
+        if self.get_face_samples:
+
+            if found:
+                self.face_samples_recorded += 1
+                x, y, w, h = faces[0]
+                self.face_samples.append(frame[y:h, x:w])
+
+            if self.face_samples_recorded+1 > 50:
+                self.save_face_samples()
+
+        return True
 
     def save_face_samples(self):
         """
@@ -196,10 +202,9 @@ class FaceManager:
         """
         Make cleaning after adding a new face
         """
+        self.get_face_samples = False
         self.face_samples_recorded = 0
         self.face_samples = list()
-        pixbuf_frame = GdkPixbuf.Pixbuf.new_from_file("resources/gui/shadow.png")
-        self.FaceFrame.set_from_pixbuf(pixbuf_frame)
         self.NewFaceName.set_text("")
         self.NewFaceName.set_sensitive(True)
         self.NewFaceButton.set_sensitive(True)
