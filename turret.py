@@ -228,6 +228,9 @@ class Gui:
         """
         retval, frame = self.camera.read()
 
+        # b, g, r = cv2.split(frame)
+        # frame = cv2.merge([r, g, b])
+
         found = None
 
         if MODE is None or MODE == 'motion':
@@ -246,6 +249,11 @@ class Gui:
         cv2.imwrite(".frame.jpg", frame)
         pixbuf_frame = GdkPixbuf.Pixbuf.new_from_file(".frame.jpg")
         self.Frame.set_from_pixbuf(pixbuf_frame)
+
+        # h, w, d = frame.shape
+        # pixbuf = GdkPixbuf.Pixbuf.new_from_data(frame.tostring(), GdkPixbuf.Colorspace.RGB, False, 8, w, h, w*3, None, None)
+        # self.Frame.set_from_pixbuf (pixbuf)
+
         return True
     
     def update_frame_facecluster(self):
