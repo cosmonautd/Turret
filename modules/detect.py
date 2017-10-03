@@ -7,11 +7,11 @@ detection_modes = [ 'motion',
 mode_description = { 'motion': 'Motion detection',
                      'upperbody-face' : 'Upperbody and face detection' }
 
-# Load Haar Cascade Classifiers for upperbody and face
+# Load Cascade Classifiers for upperbody and face
 # We use classifiers commonly found in opencv packages
-CASCADE_UPPERBODY = cv2.CascadeClassifier("resources/haarcascades/haarcascade_mcs_upperbody.xml")
-CASCADE_FACE = cv2.CascadeClassifier("resources/haarcascades/haarcascade_frontalface_alt.xml")
-CASCADE_PROFILE_FACE = cv2.CascadeClassifier("resources/haarcascades/haarcascade_profileface.xml")
+CASCADE_UPPERBODY = cv2.CascadeClassifier("resources/cascades/haarcascade_mcs_upperbody.xml")
+CASCADE_FACE = cv2.CascadeClassifier("resources/cascades/haarcascade_frontalface_alt.xml")
+CASCADE_PROFILE_FACE = cv2.CascadeClassifier("resources/cascades/haarcascade_profileface.xml")
 
 def single_cascade(frame, cascade=CASCADE_UPPERBODY, return_faces=False, drawboxes=True):
 
