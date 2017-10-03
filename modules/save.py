@@ -177,8 +177,14 @@ class Drive(object):
         # TODO: Explain https://googledrive.github.io/PyDrive/docs/build/html/quickstart.html
         # When exception happens here.
         self.g = GoogleAuth()
-        self.g.LocalWebserverAuth()
-        # self.g.CommandLineAuth()
+        self.g.LoadCredentialsFile('credentials.txt')
+        if self.g.credentials is None:
+            self.g.LocalWebserverAuth()
+        elif self.g.acess_token_expired:
+            self.g.Refresh()
+        else:
+            self.g.Authorize()
+        self.g.SaveCredentialsFile('credentials.txt')
         self.googledrive = GoogleDrive(self.g)
 
 
