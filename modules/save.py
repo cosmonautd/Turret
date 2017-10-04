@@ -120,7 +120,8 @@ class UploadQueue(object):
 
                 upload_path = None 
                 while not upload_path and self.running:
-                    upload_path = self.drive.get_link(img_time) 
+                    upload_path = self.drive.get_link(img_time)
+                    print("AFF") 
                     time.sleep(0.1) 
                 if self.drive:
                     disk_path = "/".join(("detected", str(img_time.year), str(img_time.month) + ". "
@@ -177,14 +178,14 @@ class Drive(object):
         # TODO: Explain https://googledrive.github.io/PyDrive/docs/build/html/quickstart.html
         # When exception happens here.
         self.g = GoogleAuth()
-        self.g.LoadCredentialsFile('credentials.txt')
-        if self.g.credentials is None:
-            self.g.LocalWebserverAuth()
-        elif self.g.acess_token_expired:
-            self.g.Refresh()
-        else:
-            self.g.Authorize()
-        self.g.SaveCredentialsFile('credentials.txt')
+        # self.g.LoadCredentialsFile('credentials.json')
+        # if self.g.credentials is None:
+        self.g.LocalWebserverAuth()
+        # elif self.g.access_token_expired:
+            # self.g.Refresh()
+        # else:
+            # self.g.Authorize()
+        # self.g.SaveCredentialsFile('credentials.json')
         self.googledrive = GoogleDrive(self.g)
 
 
