@@ -65,4 +65,4 @@ target/
 *~
 detected/
 faces/
-credentials.json
+resources/credentials.json
