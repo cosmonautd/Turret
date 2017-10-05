@@ -65,4 +65,4 @@ target/
 *~
 detected/
 faces/
-client_secrets.json
+credentials.json
