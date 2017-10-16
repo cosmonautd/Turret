@@ -204,7 +204,7 @@ class Gui:
         Initiate video capture using the first webcam found.
         Set camera width and height settings.
         """
-        self.camera = cv2.VideoCapture(0)
+        self.camera = cv2.VideoCapture(-1)
         self.camera.set(CV_CAP_PROP_FRAME_WIDTH, WIDTH)
         self.camera.set(CV_CAP_PROP_FRAME_HEIGHT, HEIGHT)
 
