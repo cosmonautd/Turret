@@ -1,6 +1,7 @@
 import os
 import cv2
 import sys
+import numpy
 import shutil
 import signal
 from PIL import Image
@@ -42,6 +43,10 @@ class FaceManager:
         self.FaceManagerDatabase = self.gtk.get_object("DatabaseGrid")
 
         self.camera = None
+        self.face_recognizer = None
+        self.namedict = None
+        self.last_images = list()
+
         self.init_newface_name()
         self.init_newface_button()
         self.init_deleteface_button()
@@ -67,6 +72,8 @@ class FaceManager:
             facedatabase.extend(dirnames)
             break
         
+        facedatabase = sorted(facedatabase)
+        
         for child in self.FaceManagerDatabase.get_children():
             self.FaceManagerDatabase.remove(child)
         
@@ -82,6 +89,7 @@ class FaceManager:
             button.set_name(name)
             self.FaceManagerDatabase.add(button)
         self.FaceManagerDatabase.show_all()
+        self.trainfacerec()
 
     def init_newface_name(self):
         """
@@ -152,7 +160,7 @@ class FaceManager:
         Initiate video capture using the first webcam found.
         Set camera width and height settings.
         """
-        self.camera = cv2.VideoCapture(0)
+        self.camera = cv2.VideoCapture(-1)
         self.camera.set(CV_CAP_PROP_FRAME_WIDTH, WIDTH)
         self.camera.set(CV_CAP_PROP_FRAME_HEIGHT, HEIGHT)
     
@@ -168,7 +176,27 @@ class FaceManager:
 
         frame, found, faces = detect.single_cascade(frame, cascade=detect.CASCADE_FACE,
                                                            return_faces=True,
-                                                           drawboxes=self.get_face_samples)
+                                                           drawboxes=True)
+
+        if found:
+
+            x, y, w, h = faces[0]
+            face_gray = cv2.cvtColor(frame[y:h, x:w], cv2.COLOR_BGR2GRAY)
+            self.last_images.append(imgutils.resize(face_gray, 50, 50))
+        
+            if self.face_recognizer != None and self.namedict != None and len(self.last_images) > 8:
+                detections = list()
+                for img in self.last_images[-8:]:
+                    label, conf = self.face_recognizer.predict(img)
+                    detections.append(label)
+                    # if(conf < 180):
+                    #     name = self.namedict[label]
+                    # else:
+                    #     name = "Unknown"
+                counts = numpy.bincount(detections)
+                detectedlabel = numpy.argmax(counts)
+                name = self.namedict[detectedlabel]
+                cv2.putText(frame, name, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
         cv2.imwrite(".frame.jpg", frame)
         pixbuf_frame = GdkPixbuf.Pixbuf.new_from_file(".frame.jpg")
@@ -194,7 +222,7 @@ class FaceManager:
         if not os.path.exists(outputpath):
             os.makedirs(outputpath)
         for i, face in enumerate(self.face_samples):
-            cv2.imwrite(outputpath + '/' + str(i+1) + '.jpg', face)
+            cv2.imwrite(outputpath + '/' + str(i+1) + '.jpg', imgutils.resize(face, 50, 50))
         cv2.imwrite(outputpath + '/' + str(0) + '.jpg', imgutils.resize(self.face_samples[0], 50, 50))
         self.clean_after_acquisition()
 
@@ -209,6 +237,31 @@ class FaceManager:
         self.NewFaceName.set_sensitive(True)
         self.NewFaceButton.set_sensitive(True)
         self.update_face_manager_database()
+    
+    def trainfacerec(self):
+        facedatabase = list()
+        for (dirpath, dirnames, filenames) in os.walk('faces'):
+            facedatabase.extend(dirnames)
+            break
+        
+        facedatabase = sorted(facedatabase)
+
+        self.namedict = dict()
+        faces, labels = list(), list()
+        for i, name in enumerate(facedatabase):
+            images = list()
+            for (dirpath, dirnames, filenames) in os.walk('faces/'+name):
+                images.extend(filenames)
+                break
+            for image in images:
+                faces.append(cv2.cvtColor(cv2.imread('faces/'+name+'/'+image), cv2.COLOR_BGR2GRAY))
+                labels.append(i)
+            self.namedict[i] = name
+        
+        if len(facedatabase) > 1:
+            self.face_recognizer = cv2.face.LBPHFaceRecognizer_create()
+            self.face_recognizer.train(faces, numpy.array(labels))
+
 
     def close_button_pressed(self, widget, event):
         """

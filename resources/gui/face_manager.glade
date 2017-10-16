@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.0 -->
+<!-- Generated with glade 3.20.1 -->
 <interface>
   <requires lib="gtk+" version="3.12"/>
   <object class="GtkWindow" id="MainWindow">
@@ -71,6 +71,24 @@
                                 <property name="row_spacing">4</property>
                                 <property name="column_spacing">4</property>
                                 <property name="column_homogeneous">True</property>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
                                 <child>
                                   <placeholder/>
                                 </child>
@@ -204,8 +222,8 @@
             </child>
             <child>
               <object class="GtkBox" id="ModelManagerBox">
-                <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="no_show_all">True</property>
                 <property name="orientation">vertical</property>
                 <child>
                   <object class="GtkBox" id="TrainModelBox">
@@ -520,8 +538,8 @@
             </child>
             <child type="tab">
               <object class="GtkLabel" id="NotebookModelManager">
-                <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="no_show_all">True</property>
                 <property name="label" translatable="yes">Model Manager</property>
               </object>
               <packing>
@@ -531,8 +549,8 @@
             </child>
             <child>
               <object class="GtkBox" id="RandomManagerBox">
-                <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="no_show_all">True</property>
                 <property name="orientation">vertical</property>
                 <child>
                   <placeholder/>
@@ -547,8 +565,8 @@
             </child>
             <child type="tab">
               <object class="GtkLabel" id="NotebookRandomManager">
-                <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="no_show_all">True</property>
                 <property name="label" translatable="yes">Random Manager</property>
               </object>
               <packing>
