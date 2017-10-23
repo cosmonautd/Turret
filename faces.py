@@ -259,7 +259,7 @@ class FaceManager:
             self.namedict[i] = name
         
         if len(facedatabase) > 1:
-            self.face_recognizer = cv2.face.LBPHFaceRecognizer_create()
+            self.face_recognizer = cv2.face.EigenFaceRecognizer_create()
             self.face_recognizer.train(faces, numpy.array(labels))
 
 
