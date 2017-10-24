@@ -184,15 +184,15 @@ class FaceManager:
             face_gray = cv2.cvtColor(frame[y:h, x:w], cv2.COLOR_BGR2GRAY)
             self.last_images.append(imgutils.resize(face_gray, 50, 50))
         
-            if self.face_recognizer != None and self.namedict != None and len(self.last_images) > 10:
+            if self.face_recognizer != None and self.namedict != None and len(self.last_images) > 8:
                 detections = list()
-                for img in self.last_images[-10:]:
+                for img in self.last_images[-8:]:
                     label, conf = self.face_recognizer.predict(img)
                     detections.append(label)
                 counts = numpy.bincount(detections)
                 detectedlabel = numpy.argmax(counts)
-                name = self.namedict[detectedlabel] if counts[detectedlabel] > 7 else "Unknown"
-                cv2.putText(frame, name, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                name = self.namedict[detectedlabel] if counts[detectedlabel] > 6 else "Unknown"
+                cv2.putText(frame, name, (x, y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
         cv2.imwrite(".frame.jpg", frame)
         pixbuf_frame = GdkPixbuf.Pixbuf.new_from_file(".frame.jpg")
