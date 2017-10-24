@@ -184,18 +184,14 @@ class FaceManager:
             face_gray = cv2.cvtColor(frame[y:h, x:w], cv2.COLOR_BGR2GRAY)
             self.last_images.append(imgutils.resize(face_gray, 50, 50))
         
-            if self.face_recognizer != None and self.namedict != None and len(self.last_images) > 8:
+            if self.face_recognizer != None and self.namedict != None and len(self.last_images) > 10:
                 detections = list()
-                for img in self.last_images[-8:]:
+                for img in self.last_images[-10:]:
                     label, conf = self.face_recognizer.predict(img)
                     detections.append(label)
-                    # if(conf < 180):
-                    #     name = self.namedict[label]
-                    # else:
-                    #     name = "Unknown"
                 counts = numpy.bincount(detections)
                 detectedlabel = numpy.argmax(counts)
-                name = self.namedict[detectedlabel]
+                name = self.namedict[detectedlabel] if counts[detectedlabel] > 7 else "Unknown"
                 cv2.putText(frame, name, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
         cv2.imwrite(".frame.jpg", frame)
@@ -259,7 +255,7 @@ class FaceManager:
             self.namedict[i] = name
         
         if len(facedatabase) > 1:
-            self.face_recognizer = cv2.face.EigenFaceRecognizer_create()
+            self.face_recognizer = cv2.face.LBPHFaceRecognizer_create()
             self.face_recognizer.train(faces, numpy.array(labels))
 
 
