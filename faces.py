@@ -194,9 +194,14 @@ class FaceManager:
                 name = self.namedict[detectedlabel] if counts[detectedlabel] > 6 else "Unknown"
                 cv2.putText(frame, name, (x, y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-        cv2.imwrite(".frame.jpg", frame)
-        pixbuf_frame = GdkPixbuf.Pixbuf.new_from_file(".frame.jpg")
-        self.FaceFrame.set_from_pixbuf(pixbuf_frame)
+        # cv2.imwrite(".frame.jpg", frame)
+        # pixbuf_frame = GdkPixbuf.Pixbuf.new_from_file(".frame.jpg")
+        # self.FaceFrame.set_from_pixbuf(pixbuf_frame)
+
+        h, w, d = frame.shape
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_data(frame.flatten(), GdkPixbuf.Colorspace.RGB, False, 8, w, h, w*3, None, None)
+        self.FaceFrame.set_from_pixbuf(pixbuf)
 
         if self.get_face_samples:
 
