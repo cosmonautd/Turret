@@ -199,8 +199,8 @@ class FaceManager:
         # self.FaceFrame.set_from_pixbuf(pixbuf_frame)
 
         h, w, d = frame.shape
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        pixbuf = GdkPixbuf.Pixbuf.new_from_data(frame.flatten(), GdkPixbuf.Colorspace.RGB, False, 8, w, h, w*3, None, None)
+        frame_show = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_data(frame_show.flatten(), GdkPixbuf.Colorspace.RGB, False, 8, w, h, w*3, None, None)
         self.FaceFrame.set_from_pixbuf(pixbuf)
 
         if self.get_face_samples:
