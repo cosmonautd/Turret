@@ -31,7 +31,7 @@ class FaceManager:
         Load GUI template from face_manager.glade into a Gtk.Builder object.
         Intantiate objects for each necessary GUI element.
         """
-        self.gladefile = 'resources/gui/face_manager.glade'
+        self.gladefile = 'resources/gui/faces.glade'
         self.gtk = Gtk.Builder()
         self.gtk.add_from_file(self.gladefile)
         self.gtk.connect_signals(self)
