@@ -1,11 +1,14 @@
 import cv2
 from . import imgutils
+from . import facerec
 
 detection_modes = [ 'motion',
-                    'upperbody-face']
+                    'upperbody-face',
+                    'face-recognition']
 
 mode_description = { 'motion': 'Motion detection',
-                     'upperbody-face' : 'Upperbody and face detection' }
+                     'upperbody-face' : 'Upperbody and face detection',
+                     'face-recognition' : 'Face detection and recognition' }
 
 # Load Cascade Classifiers for upperbody and face
 # We use classifiers commonly found in opencv packages
@@ -14,11 +17,11 @@ CASCADE_UPPERBODY = cv2.CascadeClassifier("resources/cascades/haarcascade_mcs_up
 CASCADE_FACE = cv2.CascadeClassifier("resources/cascades/lbpcascade_frontalface_improved.xml")
 CASCADE_PROFILE_FACE = cv2.CascadeClassifier("resources/cascades/haarcascade_profileface.xml")
 
-def single_cascade(frame, cascade=CASCADE_UPPERBODY, return_faces=False, drawboxes=True):
+def single_cascade(frame, cascade=CASCADE_UPPERBODY, return_faces=False, drawboxes=True, min_rectangle=(60,60)):
 
     # Detect cascade pattern in the frame and draw a green rectangle around it,
     # if pattern is found.
-    (rects, frame) = imgutils.detect_pattern(frame, cascade, (60,60))
+    (rects, frame) = imgutils.detect_pattern(frame, cascade, min_rectangle)
 
     if drawboxes:
         frame = imgutils.box(rects, frame)
@@ -107,3 +110,21 @@ def motion_detection(frame, first_frame, thresh=10, it=35, min_area=200, max_are
         found = True
 
     return frame, raw_frame, found
+
+facerecognizer = facerec.FaceRecognizer()
+facerecognizer.train()
+
+def face_recognition(frame):
+
+    frame, found, faces = single_cascade(frame, cascade=CASCADE_FACE,
+                                                return_faces=True,
+                                                drawboxes=True,
+                                                min_rectangle=(20,20))
+    
+    if found:
+        x, y, w, h = faces[0]
+        face = frame[y:h, x:w]
+        name = facerecognizer.recognize(face)
+        cv2.putText(frame, name, (x, y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+    
+    return frame, found
