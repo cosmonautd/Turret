@@ -117,6 +117,8 @@ last = time.time()
 
 def face_recognition(frame):
 
+    global facerecognizer, last
+
     if not facerecognizer:
         facerecognizer = facerec.FaceRecognizer()
         facerecognizer.train()
