@@ -120,7 +120,7 @@ def face_recognition(frame):
     global facerecognizer, last
 
     if not facerecognizer:
-        facerecognizer = facerec.FaceRecognizer()
+        facerecognizer = facerec.FaceRecognizer(buffersize=5)
         facerecognizer.train()
     
     if time.time() - last > 10:
@@ -129,7 +129,7 @@ def face_recognition(frame):
     frame, found, faces = single_cascade(frame, cascade=CASCADE_FACE,
                                                 return_faces=True,
                                                 drawboxes=True,
-                                                min_rectangle=(20,20))
+                                                min_rectangle=(40,40))
     
     if found:
         x, y, w, h = faces[0]
