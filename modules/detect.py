@@ -1,3 +1,4 @@
+import time
 import cv2
 from . import imgutils
 from . import facerec
@@ -111,10 +112,17 @@ def motion_detection(frame, first_frame, thresh=10, it=35, min_area=200, max_are
 
     return frame, raw_frame, found
 
-facerecognizer = facerec.FaceRecognizer()
-facerecognizer.train()
+facerecognizer = None
+last = time.time()
 
 def face_recognition(frame):
+
+    if not facerecognizer:
+        facerecognizer = facerec.FaceRecognizer()
+        facerecognizer.train()
+    
+    if time.time() - last > 10:
+        facerecognizer.clear_buffer()
 
     frame, found, faces = single_cascade(frame, cascade=CASCADE_FACE,
                                                 return_faces=True,
@@ -126,5 +134,6 @@ def face_recognition(frame):
         face = frame[y:h, x:w]
         name = facerecognizer.recognize(face)
         cv2.putText(frame, name, (x, y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        last = time.time()
     
     return frame, found

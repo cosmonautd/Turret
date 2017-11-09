@@ -7,10 +7,12 @@ from . import imgutils
 
 class FaceRecognizer():
 
-    def __init__(self):
+    def __init__(self, buffersize=10, confidence=0.75):
         self.model = None
         self.namedict = dict()
-        self.buffer = collections.deque(maxlen=8)
+        self.buffersize = buffersize
+        self.buffer = collections.deque(maxlen=self.buffersize)
+        self.confidence = confidence
     
     def train(self):
         facedatabase = list()
@@ -39,12 +41,15 @@ class FaceRecognizer():
         face_gray = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
         self.buffer.append(imgutils.resize(face_gray, 50, 50))
     
-        if self.model != None and self.namedict != None and len(self.buffer) == 8:
+        if self.model != None and self.namedict != None and len(self.buffer) == self.buffersize:
             detections = list()
             for img in self.buffer:
                 label, conf = self.model.predict(img)
                 detections.append(label)
             counts = numpy.bincount(detections)
             detectedlabel = numpy.argmax(counts)
-            name = self.namedict[detectedlabel] if counts[detectedlabel] > 6 else "Unknown"
+            name = self.namedict[detectedlabel] if counts[detectedlabel] > self.confidence*self.buffersize else "Unknown"
             return name
+    
+    def clear_buffer(self):
+        self.buffer = collections.deque(maxlen=self.buffersize)
