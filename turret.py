@@ -240,7 +240,7 @@ class Gui:
         elif MODE == 'upperbody-face':
             frame, found = detect.double_cascade(frame)
         elif MODE == 'face-recognition':
-            frame, found = detect.face_recognition2(frame)
+            frame, found = detect.face_recognition(frame)
 
         if found:
             now = datetime.datetime.now()

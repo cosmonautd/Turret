@@ -1,7 +1,7 @@
 import os
 import time
 import cv2
-import face_recognition
+import face_recognition as fc
 from . import imgutils
 from . import facerec
 
@@ -159,12 +159,12 @@ def face_recognition(frame):
         for (dirpath, dirnames, filenames) in os.walk('faces'):
             database.extend(filenames)
             break
-        facedatabase = [face_recognition.load_image_file(os.path.join('faces', name)) for name in database]
-        facedatabase_encodings = [face_recognition.face_encodings(face)[0] for face in facedatabase]
+        facedatabase = [fc.load_image_file(os.path.join('faces', name)) for name in database]
+        facedatabase_encodings = [fc.face_encodings(face)[0] for face in facedatabase]
     
     small_frame = cv2.resize(frame, (0, 0), fx=fraction, fy=fraction)
-    face_locations = face_recognition.face_locations(small_frame)
-    face_encodings = face_recognition.face_encodings(small_frame, face_locations)
+    face_locations = fc.face_locations(small_frame)
+    face_encodings = fc.face_encodings(small_frame, face_locations)
 
     if len(face_encodings) > 0:
 
@@ -172,7 +172,7 @@ def face_recognition(frame):
 
         face_names = []
         for face_encoding in face_encodings:
-            match = face_recognition.compare_faces(facedatabase_encodings, face_encoding, tolerance=0.5)
+            match = fc.compare_faces(facedatabase_encodings, face_encoding, tolerance=0.5)
             try: name = database[match.index(True)].split('.')[0]
             except ValueError: name = "Unknown"
             face_names.append(name)
