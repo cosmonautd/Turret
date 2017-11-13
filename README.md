@@ -7,11 +7,17 @@
  
 ```
 pip install --upgrade pip
-pip install pygame Pillow PyDrive
+pip install pygame Pillow PyDrive face_recognition
 ```
  - Install OpenCV and PyGobject with pacman
 ```
-pacman -S opencv python-gobject python2-gobject gtk3
+sudo pacman -S opencv python-gobject python2-gobject gtk3 dlib
+```
+ - Install dlib for Python
+```
+git clone https://github.com/davisking/dlib.git
+cd dlib
+sudo python setup.py install
 ```
 
 #### Install on Windows ####
