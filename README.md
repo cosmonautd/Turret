@@ -20,7 +20,7 @@ cd dlib
 sudo python setup.py install
 ```
 
-#### Install on Windows ####
+#### Install on Windows (broken, no support for face_recognition yet) ####
 
  - Download and install Python 3.4.x (https://www.python.org/downloads/release/python-344/)
  - Download and install latest PyGObject for Windows (https://sourceforge.net/projects/pygobjectwin32/)
