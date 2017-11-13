@@ -240,7 +240,7 @@ class Gui:
         elif MODE == 'upperbody-face':
             frame, found = detect.double_cascade(frame)
         elif MODE == 'face-recognition':
-            frame, found = detect.face_recognition(frame)
+            frame, found = detect.face_recognition2(frame)
 
         if found:
             now = datetime.datetime.now()
@@ -248,14 +248,14 @@ class Gui:
             if BACKUP_GOOGLEDRIVE: upload.append(now)
             if not SILENT: sound.play("detected", use_pps=True)
 
-        cv2.imwrite(".frame.jpg", frame)
-        pixbuf_frame = GdkPixbuf.Pixbuf.new_from_file(".frame.jpg")
-        self.Frame.set_from_pixbuf(pixbuf_frame)
+        # cv2.imwrite(".frame.jpg", frame)
+        # pixbuf_frame = GdkPixbuf.Pixbuf.new_from_file(".frame.jpg")
+        # self.Frame.set_from_pixbuf(pixbuf_frame)
 
-        # h, w, d = frame.shape
-        # frame_show = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        # pixbuf = GdkPixbuf.Pixbuf.new_from_data(frame_show.flatten(), GdkPixbuf.Colorspace.RGB, False, 8, w, h, w*3, None, None)
-        # self.Frame.set_from_pixbuf(pixbuf)
+        h, w, d = frame.shape
+        frame_show = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_data(frame_show.flatten(), GdkPixbuf.Colorspace.RGB, False, 8, w, h, w*3, None, None)
+        self.Frame.set_from_pixbuf(pixbuf)
 
         return True
     

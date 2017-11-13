@@ -1,5 +1,7 @@
+import os
 import time
 import cv2
+import face_recognition
 from . import imgutils
 from . import facerec
 
@@ -116,7 +118,7 @@ def motion_detection(frame, first_frame, thresh=10, it=35, min_area=200, max_are
 facerecognizer = None
 last = time.time()
 
-def face_recognition(frame):
+def old_face_recognition1(frame):
 
     global facerecognizer, last
 
@@ -140,3 +142,49 @@ def face_recognition(frame):
         last = time.time()
     
     return frame, found
+
+database = None
+facedatabase = None
+facedatabase_encodings = None
+fraction = 1.0
+
+def face_recognition(frame):
+
+    global database, facedatabase, facedatabase_encodings, fraction
+
+    found = False
+
+    if (not database) or (not facedatabase) or (not facedatabase_encodings):
+        database = list()
+        for (dirpath, dirnames, filenames) in os.walk('faces'):
+            database.extend(filenames)
+            break
+        facedatabase = [face_recognition.load_image_file(os.path.join('faces', name)) for name in database]
+        facedatabase_encodings = [face_recognition.face_encodings(face)[0] for face in facedatabase]
+    
+    small_frame = cv2.resize(frame, (0, 0), fx=fraction, fy=fraction)
+    face_locations = face_recognition.face_locations(small_frame)
+    face_encodings = face_recognition.face_encodings(small_frame, face_locations)
+
+    if len(face_encodings) > 0:
+
+        found = True
+
+        face_names = []
+        for face_encoding in face_encodings:
+            match = face_recognition.compare_faces(facedatabase_encodings, face_encoding, tolerance=0.5)
+            try: name = database[match.index(True)].split('.')[0]
+            except ValueError: name = "Unknown"
+            face_names.append(name)
+        
+        for (top, right, bottom, left), name in zip(face_locations, face_names):
+            # top = int((1/fraction)*top - 16)
+            # right = int((1/fraction)*right + 16)
+            # bottom = int((1/fraction)*bottom + 16)
+            # left = int((1/fraction)*left - 16)
+            cv2.rectangle(small_frame, (left, top), (right, bottom), (0, 0, 255), 2)
+            cv2.rectangle(small_frame, (left, top - 20), (right, top), (0, 0, 255), cv2.FILLED)
+            font = cv2.FONT_HERSHEY_DUPLEX
+            cv2.putText(small_frame, name, (left + 6, top - 6), font, 0.5, (255, 255, 255), 1)
+    
+    return small_frame, found
