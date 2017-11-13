@@ -236,7 +236,7 @@ class Gui:
         if MODE is None or MODE == 'motion':
             if self.last_frame is None:
                 self.last_frame = frame
-            frame, self.last_frame, found = detect.motion_detection(frame, self.last_frame)
+            frame, self.last_frame, found = detect.motion_detection(frame, self.last_frame, drawboxes=False)
         elif MODE == 'upperbody-face':
             frame, found = detect.double_cascade(frame)
         elif MODE == 'face-recognition':

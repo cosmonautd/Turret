@@ -74,7 +74,7 @@ def double_cascade(frame, return_faces=False,
         return frame, found
 
 # based on a tutorial from http://www.pyimagesearch.com/
-def motion_detection(frame, first_frame, thresh=10, it=35, min_area=200, max_area=245760):
+def motion_detection(frame, first_frame, thresh=10, it=35, min_area=200, max_area=245760, drawboxes=True):
 
     found = False
 
@@ -107,7 +107,8 @@ def motion_detection(frame, first_frame, thresh=10, it=35, min_area=200, max_are
         # compute the bounding box for the contour, draw it on the frame and update the text
         (x, y, w, h) = cv2.boundingRect(c)
         if w*h > max_area: continue
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        if drawboxes:
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
         found = True
 
     return frame, raw_frame, found
@@ -120,7 +121,7 @@ def face_recognition(frame):
     global facerecognizer, last
 
     if not facerecognizer:
-        facerecognizer = facerec.FaceRecognizer(buffersize=5)
+        facerecognizer = facerec.FaceRecognizer(buffersize=10)
         facerecognizer.train()
     
     if time.time() - last > 10:
