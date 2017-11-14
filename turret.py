@@ -48,8 +48,8 @@ BACKUP_GOOGLEDRIVE = args.backup_gdrive and SAVE_TO_DISK
 MODE = args.mode or 'motion'
 
 # Width and height of the frames our turret will process
-WIDTH  = 640*2
-HEIGHT = 480*2
+WIDTH  = 640
+HEIGHT = 480
 # Codes for OpenCV camera settings
 CV_CAP_PROP_FRAME_WIDTH  = 3
 CV_CAP_PROP_FRAME_HEIGHT = 4

@@ -118,7 +118,7 @@ def motion_detection(frame, first_frame, thresh=10, it=35, min_area=200, max_are
 facerecognizer = None
 last = time.time()
 
-def old_face_recognition1(frame):
+def old_face_recognition(frame):
 
     global facerecognizer, last
 
@@ -185,6 +185,6 @@ def face_recognition(frame):
             cv2.rectangle(small_frame, (left, top), (right, bottom), (0, 0, 255), 2)
             cv2.rectangle(small_frame, (left, top - 20), (right, top), (0, 0, 255), cv2.FILLED)
             font = cv2.FONT_HERSHEY_DUPLEX
-            cv2.putText(small_frame, name, (left + 6, top - 6), font, 0.5, (255, 255, 255), 1)
+            cv2.putText(small_frame, name, (left + 6, top - 6), font, 0.5*((bottom-top)/80), (255, 255, 255), 1)
     
     return small_frame, found
