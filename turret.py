@@ -24,6 +24,7 @@ parser = argparse.ArgumentParser(description="People detection turret. Detects p
                                 ...    --------------------------------
                                 ...    motion:              Motion detection function based on background subtraction.
                                 ...    upperbody-face:      Upperbody and face detection
+                                ...    face-recognition:    Face detection and recognition
 
                                 '''), formatter_class=argparse.RawDescriptionHelpFormatter,)
 parser.add_argument("-s", "--silent", help="Shut down the turret's sound modules.", action="store_true")
