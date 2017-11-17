@@ -44,7 +44,7 @@ def double_cascade(frame, return_faces=False,
 
     # Detect upperbodies in the frame and draw a green rectangle around it, if found
     (rects_upperbody, frame) = imgutils.detect_pattern(frame, cascade_upperbody, (60,60))
-    frame = imgutils.box(rects_upperbody, frame)
+    frame = imgutils.box(rects_upperbody, frame, (0, 0, 255))
     rects_face = []
     found = False
     # Search for upperbodies!
@@ -115,7 +115,7 @@ def motion_detection(frame, thresh=10, it=35, min_area=200, max_area=245760, dra
             (x, y, w, h) = cv2.boundingRect(c)
             if w*h > max_area: continue
             if drawboxes:
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
             found = True
     
     motion_detection_buffer.append(raw_frame)
