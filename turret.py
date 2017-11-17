@@ -238,7 +238,9 @@ class Gui:
         elif MODE == 'upperbody-face':
             frame, found = detect.double_cascade(frame)
         elif MODE == 'face-recognition':
-            frame, found = detect.face_recognition(frame)
+            _, found = detect.motion_detection(frame, drawboxes=True)
+            if found:
+                frame, _ = detect.face_recognition(frame)
 
         if found:
             now = datetime.datetime.now()
