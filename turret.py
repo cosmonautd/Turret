@@ -114,7 +114,6 @@ class Gui:
         self.init_detectionmode_combo()
 
         self.init_camera()
-        self.last_frame = None
 
         GLib.idle_add(self.update_frame)
         # GLib.idle_add(self.update_frame_facecluster)
@@ -235,9 +234,7 @@ class Gui:
         found = None
 
         if MODE is None or MODE == 'motion':
-            if self.last_frame is None:
-                self.last_frame = frame
-            frame, self.last_frame, found = detect.motion_detection(frame, self.last_frame, drawboxes=False)
+            frame, found = detect.motion_detection(frame, drawboxes=True)
         elif MODE == 'upperbody-face':
             frame, found = detect.double_cascade(frame)
         elif MODE == 'face-recognition':

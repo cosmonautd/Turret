@@ -1,5 +1,6 @@
 import os
 import time
+import collections
 import cv2
 import face_recognition as fc
 from . import imgutils
@@ -76,44 +77,50 @@ def double_cascade(frame, return_faces=False,
         return frame, found
 
 # based on a tutorial from http://www.pyimagesearch.com/
-def motion_detection(frame, first_frame, thresh=10, it=35, min_area=200, max_area=245760, drawboxes=True):
+motion_detection_buffer = collections.deque(maxlen=1)
+def motion_detection(frame, thresh=10, it=35, min_area=200, max_area=245760, drawboxes=True):
+
+    global motion_detection_buffer
 
     found = False
-
     raw_frame = frame.copy()
 
-    # Process first_frame
-    first_frame = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)
-    first_frame = cv2.GaussianBlur(first_frame, (21, 21), 0)
+    if len(motion_detection_buffer) > 0:
 
-    # resize the frame, convert it to grayscale, and blur it
-    #frame = imgutils.resize(frame, width=500)
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, (21, 21), 0)
+        # Process first_frame
+        first_frame = cv2.cvtColor(motion_detection_buffer[-1], cv2.COLOR_BGR2GRAY)
+        first_frame = cv2.GaussianBlur(first_frame, (21, 21), 0)
 
-    # compute the absolute difference between the current frame and first frame
-    frameDelta = cv2.absdiff(first_frame, gray)
-    thresh = cv2.threshold(frameDelta, thresh, 255, cv2.THRESH_BINARY)[1]
+        # resize the frame, convert it to grayscale, and blur it
+        #frame = imgutils.resize(frame, width=500)
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray = cv2.GaussianBlur(gray, (21, 21), 0)
 
-    # dilate the thresholded image to fill in holes, then find contours on thresholded image
-    thresh = cv2.dilate(thresh, None, iterations=it)
-    (_, cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
-        cv2.CHAIN_APPROX_SIMPLE)
+        # compute the absolute difference between the current frame and first frame
+        frameDelta = cv2.absdiff(first_frame, gray)
+        thresh = cv2.threshold(frameDelta, thresh, 255, cv2.THRESH_BINARY)[1]
 
-    # loop over the contours
-    for c in cnts:
-        # if the contour is too small, ignore it
-        if cv2.contourArea(c) < min_area:
-            continue
+        # dilate the thresholded image to fill in holes, then find contours on thresholded image
+        thresh = cv2.dilate(thresh, None, iterations=it)
+        (_, cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
+            cv2.CHAIN_APPROX_SIMPLE)
 
-        # compute the bounding box for the contour, draw it on the frame and update the text
-        (x, y, w, h) = cv2.boundingRect(c)
-        if w*h > max_area: continue
-        if drawboxes:
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        found = True
+        # loop over the contours
+        for c in cnts:
+            # if the contour is too small, ignore it
+            if cv2.contourArea(c) < min_area:
+                continue
 
-    return frame, raw_frame, found
+            # compute the bounding box for the contour, draw it on the frame and update the text
+            (x, y, w, h) = cv2.boundingRect(c)
+            if w*h > max_area: continue
+            if drawboxes:
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            found = True
+    
+    motion_detection_buffer.append(raw_frame)
+
+    return frame, found
 
 facerecognizer = None
 last = time.time()
