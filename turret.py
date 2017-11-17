@@ -259,45 +259,6 @@ class Gui:
         self.Frame.set_from_pixbuf(pixbuf)
 
         return True
-    
-    def update_frame_facecluster(self):
-        """
-        Get a new frame from camera.
-        Process this frame.
-        Write to an image file, which is awful, but the only way it worked.
-        Display the file on the Frame element of the main window.
-        """
-        retval, frame = self.camera.read()
-
-        found = None
-
-        if MODE is None or MODE == 'motion':
-            if self.last_frame is None:
-                self.last_frame = frame
-            frame, self.last_frame, found = detect.motion_detection(frame, self.last_frame)
-        elif MODE == 'upperbody-face':
-            frame, found, faces = detect.double_cascade(frame, return_faces=True)
-
-        if found:
-            now = datetime.datetime.now()
-            if SAVE_TO_DISK: save.save(frame, now)
-            if BACKUP_GOOGLEDRIVE: upload.append(now)
-            if not SILENT: sound.play("detected", use_pps=True)
-
-        if len(faces) > 0:
-            x, y, w, h = faces[0]
-            face = frame[y:h, x:w]
-            face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
-            corners = cv2.goodFeaturesToTrack(face, 25, 0.01, 10)
-            corners = numpy.int0(corners)
-            for i in corners:
-                x2, y2 = i.ravel()
-                cv2.circle(frame, (x2+x, y2+y), 3, 255, -1)
-        
-        cv2.imwrite(".frame.jpg", frame)
-        pixbuf_frame = GdkPixbuf.Pixbuf.new_from_file(".frame.jpg")
-        self.Frame.set_from_pixbuf(pixbuf_frame)
-        return True
 
 def clean():
     """
