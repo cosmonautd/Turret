@@ -234,11 +234,11 @@ class Gui:
         found = None
 
         if MODE is None or MODE == 'motion':
-            frame, found = detect.motion_detection(frame, drawboxes=True)
+            frame, found = detect.motion_detection(frame, thresh=50, drawboxes=True)
         elif MODE == 'upperbody-face':
             frame, found = detect.double_cascade(frame)
         elif MODE == 'face-recognition':
-            _, found = detect.motion_detection(frame, drawboxes=True)
+            _, found = detect.motion_detection(frame, thresh=50, drawboxes=True)
             if found:
                 frame, _ = detect.face_recognition(frame)
 
