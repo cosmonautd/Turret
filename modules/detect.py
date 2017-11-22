@@ -2,6 +2,7 @@ import os
 import time
 import collections
 import cv2
+import numpy
 import face_recognition as fc
 from . import imgutils
 from . import facerec
@@ -78,7 +79,7 @@ def double_cascade(frame, return_faces=False,
 
 # based on a tutorial from http://www.pyimagesearch.com/
 motion_detection_buffer = collections.deque(maxlen=1)
-def motion_detection(frame, thresh=10, it=35, min_area=200, max_area=245760, drawboxes=True):
+def motion_detection(frame, thresh=10, it=35, min_area=200, max_area=numpy.inf, drawboxes=True):
 
     global motion_detection_buffer
 
