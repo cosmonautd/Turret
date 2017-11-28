@@ -55,7 +55,7 @@ SPEAK = args.speak or False
 GUI = args.gui or False
 SAVE_TO_DISK = args.save_to_disk or not GUI
 BACKUP_GOOGLEDRIVE = args.backup_gdrive and SAVE_TO_DISK
-ROTATE = int(args.rotate) or 0
+ROTATE = int(args.rotate or 0)
 MODE = args.mode or 'motion'
 
 # Width and height of the frames our turret will process
@@ -122,7 +122,7 @@ def loop():
     found = None
 
     if MODE is None or MODE == 'motion':
-        frame, found = detect.motion_detection(frame, thresh=50, drawboxes=True)
+        frame, found = detect.motion_detection(frame, thresh=50, drawboxes=False)
     elif MODE == 'upperbody-face':
         frame, found = detect.double_cascade(frame)
     elif MODE == 'face-recognition':
