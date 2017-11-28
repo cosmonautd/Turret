@@ -34,9 +34,9 @@ elif sys.platform == "win32":
 
                                 '''), formatter_class=argparse.RawDescriptionHelpFormatter,)
 
-parser.add_argument("-s", "--silent", help="Shut down the turret's sound modules.", action="store_true")
+parser.add_argument("-s", "--speak", help="Turn on the turret's sound modules.", action="store_true")
 parser.add_argument("-g", "--gui", help="Show a graphical user interface.", action="store_true")
-parser.add_argument("-d", "--save_to_disk", help="Saves images on disk hierarchically by date", action="store_true")
+parser.add_argument("-d", "--save_to_disk", help="Saves images on disk hierarchically by date (enabled by default in CLI operation)", action="store_true")
 parser.add_argument("-G", "--backup_gdrive", help="Saves images on Google Drive", action="store_true")
 parser.add_argument("-m", "--mode", help="The detection mode")
 
@@ -49,9 +49,9 @@ elif sys.platform == "win32":
     locale.setlocale(locale.LC_TIME, "usa_usa")
 
 # Turret global variables
-SILENT = args.silent
-GUI = args.gui
-SAVE_TO_DISK = args.save_to_disk
+SPEAK = args.speak or False
+GUI = args.gui or False
+SAVE_TO_DISK = args.save_to_disk or not GUI
 BACKUP_GOOGLEDRIVE = args.backup_gdrive and SAVE_TO_DISK
 MODE = args.mode or 'motion'
 
@@ -128,7 +128,7 @@ def loop():
         now = datetime.datetime.now()
         if SAVE_TO_DISK: save.save(frame, now)
         if BACKUP_GOOGLEDRIVE: upload.append(now)
-        if not SILENT: sound.play("detected", use_pps=True)
+        if SPEAK: sound.play("detected", use_pps=True)
     
     return frame
 
@@ -143,7 +143,7 @@ class Cli:
         Cli constructor
         """
         init_camera()
-        if not SILENT: sound.play("init")
+        if SPEAK: sound.play("init")
     
     def start(self):
         """ Main Turret operation
@@ -171,12 +171,12 @@ class Gui:
         self.gtk.connect_signals(self)
 
         self.Frame = self.gtk.get_object("Frame")
-        self.SilentSwitch = self.gtk.get_object("SilentSwitch")
+        self.SpeakSwitch = self.gtk.get_object("SpeakSwitch")
         self.SaveToDiskSwitch = self.gtk.get_object("SaveToDiskSwitch")
         self.BackupGoogleDriveSwitch = self.gtk.get_object("BackupGoogleDriveSwitch")
         self.DetectionModeCombo = self.gtk.get_object("DetectionModeCombo")
 
-        self.init_silent_switch()
+        self.init_speak_switch()
         self.init_savetodisk_switch()
         self.init_backup_googledrive_switch()
         self.init_detectionmode_combo()
@@ -190,23 +190,23 @@ class Gui:
             self.MainWindow.connect("delete-event", self.close_button_pressed)
             self.MainWindow.show_all()
 
-        if not SILENT: sound.play("init")
+        if SPEAK: sound.play("init")
 
-    def init_silent_switch(self):
+    def init_speak_switch(self):
         """
-        Connect the method update_silent_switch() to SilentSwitch.
+        Connect the method update_speak_switch() to SpeakSwitch.
         Set initial state as defined in the command line arguments.
         """
-        self.SilentSwitch.connect("notify::active", self.update_silent_switch)
-        self.SilentSwitch.set_active(SILENT)
+        self.SpeakSwitch.connect("notify::active", self.update_speak_switch)
+        self.SpeakSwitch.set_active(SPEAK)
 
-    def update_silent_switch(self, switch, params):
+    def update_speak_switch(self, switch, params):
         """
-        SILENT defines if the turret speaker modules are on or off.
-        The state of the silent switch updates the global variable SILENT.
+        SPEAK defines if the turret speaker modules are on or off.
+        The state of the speak switch updates the global variable SPEAK.
         """
-        global SILENT
-        SILENT = self.SilentSwitch.get_active()
+        global SPEAK
+        SPEAK = self.SpeakSwitch.get_active()
 
     def init_savetodisk_switch(self):
         """
@@ -297,7 +297,7 @@ def clean():
     """
     Use this to close the turret's modules when shutting down.
     """
-    if not SILENT: sound.play('quit')
+    if SPEAK: sound.play('quit')
     if upload: upload.quit()
     global camera
     camera.release()
