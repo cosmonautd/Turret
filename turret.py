@@ -14,13 +14,23 @@ from modules import soundcat
 from modules import save
 
 # Arguments parsing
-parser = argparse.ArgumentParser(description="People detection turret. Detects people and optionally dispenses product.",
+if sys.platform == "linux" or sys.platform == "linux2":
+    parser = argparse.ArgumentParser(description="People detection turret. Detects people and optionally dispenses product.",
                                     epilog=textwrap.dedent('''
                                 ...    Available modes:
                                 ...    --------------------------------
                                 ...    motion:              Motion detection function based on background subtraction.
                                 ...    upperbody-face:      Upperbody and face detection
                                 ...    face-recognition:    Face detection and recognition
+
+                                '''), formatter_class=argparse.RawDescriptionHelpFormatter,)
+elif sys.platform == "win32":
+    parser = argparse.ArgumentParser(description="People detection turret. Detects people and optionally dispenses product.",
+                                    epilog=textwrap.dedent('''
+                                ...    Available modes:
+                                ...    --------------------------------
+                                ...    motion:              Motion detection function based on background subtraction.
+                                ...    upperbody-face:      Upperbody and face detection
 
                                 '''), formatter_class=argparse.RawDescriptionHelpFormatter,)
 

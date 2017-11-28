@@ -1,19 +1,32 @@
 import os
+import sys
 import time
 import collections
 import cv2
 import numpy
-import face_recognition as fc
 from . import imgutils
 from . import facerec
 
-detection_modes = [ 'motion',
-                    'upperbody-face',
-                    'face-recognition']
+# Set locale (standardize month names)
+if sys.platform == "linux" or sys.platform == "linux2":
 
-mode_description = { 'motion': 'Motion detection',
-                     'upperbody-face' : 'Upperbody and face detection',
-                     'face-recognition' : 'Face detection and recognition' }
+    import face_recognition as fc
+
+    detection_modes = [ 'motion',
+                        'upperbody-face',
+                        'face-recognition']
+
+    mode_description = {    'motion': 'Motion detection',
+                            'upperbody-face' : 'Upperbody and face detection',
+                            'face-recognition' : 'Face detection and recognition' }
+
+elif sys.platform == "win32":
+
+    detection_modes = [ 'motion',
+                        'upperbody-face']
+
+    mode_description = {    'motion': 'Motion detection',
+                            'upperbody-face' : 'Upperbody and face detection' }
 
 # Load Cascade Classifiers for upperbody and face
 # We use classifiers commonly found in opencv packages
