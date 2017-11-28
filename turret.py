@@ -9,6 +9,7 @@ import datetime
 import textwrap
 from PIL import Image
 
+from modules import imgutils
 from modules import detect
 from modules import soundcat
 from modules import save
@@ -38,6 +39,7 @@ parser.add_argument("-s", "--speak", help="Turn on the turret's sound modules.",
 parser.add_argument("-g", "--gui", help="Show a graphical user interface.", action="store_true")
 parser.add_argument("-d", "--save_to_disk", help="Saves images on disk hierarchically by date (enabled by default in CLI operation)", action="store_true")
 parser.add_argument("-G", "--backup_gdrive", help="Saves images on Google Drive", action="store_true")
+parser.add_argument("-r", "--rotate", help="Rotates frame by specified angle")
 parser.add_argument("-m", "--mode", help="The detection mode")
 
 args = parser.parse_args()
@@ -53,6 +55,7 @@ SPEAK = args.speak or False
 GUI = args.gui or False
 SAVE_TO_DISK = args.save_to_disk or not GUI
 BACKUP_GOOGLEDRIVE = args.backup_gdrive and SAVE_TO_DISK
+ROTATE = int(args.rotate) or 0
 MODE = args.mode or 'motion'
 
 # Width and height of the frames our turret will process
@@ -112,6 +115,9 @@ def loop():
     global camera
 
     retval, frame = camera.read()
+
+    if ROTATE != 0:
+        frame = imgutils.rotate_bound(frame, ROTATE)
 
     found = None
 
