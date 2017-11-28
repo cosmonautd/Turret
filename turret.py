@@ -9,10 +9,6 @@ import datetime
 import textwrap
 from PIL import Image
 
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GdkPixbuf, GObject, GLib, Gio
-
 from modules import detect
 from modules import soundcat
 from modules import save
@@ -27,6 +23,7 @@ parser = argparse.ArgumentParser(description="People detection turret. Detects p
                                 ...    face-recognition:    Face detection and recognition
 
                                 '''), formatter_class=argparse.RawDescriptionHelpFormatter,)
+
 parser.add_argument("-s", "--silent", help="Shut down the turret's sound modules.", action="store_true")
 parser.add_argument("-g", "--gui", help="Show a graphical user interface.", action="store_true")
 parser.add_argument("-d", "--save_to_disk", help="Saves images on disk hierarchically by date", action="store_true")
@@ -55,6 +52,18 @@ HEIGHT = 480
 CV_CAP_PROP_FRAME_WIDTH  = 3
 CV_CAP_PROP_FRAME_HEIGHT = 4
 
+# Managing camera
+camera = None
+def init_camera():
+    """
+    Initiate video capture using the first webcam found.
+    Set camera width and height settings.
+    """
+    global camera
+    camera = cv2.VideoCapture(-1)
+    camera.set(CV_CAP_PROP_FRAME_WIDTH, WIDTH)
+    camera.set(CV_CAP_PROP_FRAME_HEIGHT, HEIGHT)
+
 # Soundcat object
 sound = soundcat.Soundcat(pps=1.0/5)
 sound.add_category('init', 'resources/sounds/init')
@@ -82,6 +91,55 @@ def init_googledrive():
 # Set initial Google Drive Backup configuration
 if BACKUP_GOOGLEDRIVE:
     init_googledrive()
+
+def loop():
+    """
+    Get a new frame from camera.
+    Process this frame.
+    Write to an image file, which is awful, but the only way it worked.
+    Display the file on the Frame element of the main window.
+    """
+    global camera
+
+    retval, frame = camera.read()
+
+    found = None
+
+    if MODE is None or MODE == 'motion':
+        frame, found = detect.motion_detection(frame, thresh=50, drawboxes=True)
+    elif MODE == 'upperbody-face':
+        frame, found = detect.double_cascade(frame)
+    elif MODE == 'face-recognition':
+        _, found = detect.motion_detection(frame, thresh=50, drawboxes=True)
+        if found:
+            frame, _ = detect.face_recognition(frame)
+
+    if found:
+        now = datetime.datetime.now()
+        if SAVE_TO_DISK: save.save(frame, now)
+        if BACKUP_GOOGLEDRIVE: upload.append(now)
+        if not SILENT: sound.play("detected", use_pps=True)
+    
+    return frame
+
+
+class Cli:
+    """
+    A class to control the turret's CLI operations.
+    """
+
+    def __init__(self):
+        """
+        Cli constructor
+        """
+        init_camera()
+        if not SILENT: sound.play("init")
+    
+    def start(self):
+        """ Main Turret operation
+        """
+        while True:
+            loop()
 
 class Gui:
     """
@@ -113,10 +171,9 @@ class Gui:
         self.init_backup_googledrive_switch()
         self.init_detectionmode_combo()
 
-        self.init_camera()
+        init_camera()
 
         GLib.idle_add(self.update_frame)
-        # GLib.idle_add(self.update_frame_facecluster)
 
         if GUI:
             self.MainWindow = self.gtk.get_object("MainWindow")
@@ -199,15 +256,6 @@ class Gui:
         global MODE
         MODE = self.DetectionModeCombo.get_active_id()
 
-    def init_camera(self):
-        """
-        Initiate video capture using the first webcam found.
-        Set camera width and height settings.
-        """
-        self.camera = cv2.VideoCapture(-1)
-        self.camera.set(CV_CAP_PROP_FRAME_WIDTH, WIDTH)
-        self.camera.set(CV_CAP_PROP_FRAME_HEIGHT, HEIGHT)
-
     def close_button_pressed(self, widget, event):
         """
         If close button is pressed, better clean our resources.
@@ -215,38 +263,14 @@ class Gui:
         Execute clean() method, for other resources deallocations.
         Then, actually shut down the poor turret with Gtk.main_quit().
         """
-        self.camera.release()
         clean()
         Gtk.main_quit()
 
     def update_frame(self):
         """
-        Get a new frame from camera.
-        Process this frame.
-        Write to an image file, which is awful, but the only way it worked.
-        Display the file on the Frame element of the main window.
+        Calls loop, updates frame
         """
-        retval, frame = self.camera.read()
-
-        # b, g, r = cv2.split(frame)
-        # frame = cv2.merge([r, g, b])
-
-        found = None
-
-        if MODE is None or MODE == 'motion':
-            frame, found = detect.motion_detection(frame, thresh=50, drawboxes=True)
-        elif MODE == 'upperbody-face':
-            frame, found = detect.double_cascade(frame)
-        elif MODE == 'face-recognition':
-            _, found = detect.motion_detection(frame, thresh=50, drawboxes=True)
-            if found:
-                frame, _ = detect.face_recognition(frame)
-
-        if found:
-            now = datetime.datetime.now()
-            if SAVE_TO_DISK: save.save(frame, now)
-            if BACKUP_GOOGLEDRIVE: upload.append(now)
-            if not SILENT: sound.play("detected", use_pps=True)
+        frame = loop()
 
         # cv2.imwrite(".frame.jpg", frame)
         # pixbuf_frame = GdkPixbuf.Pixbuf.new_from_file(".frame.jpg")
@@ -265,6 +289,8 @@ def clean():
     """
     if not SILENT: sound.play('quit')
     if upload: upload.quit()
+    global camera
+    camera.release()
     pass
 
 def sigint_handler(signum, instant):
@@ -279,9 +305,20 @@ if __name__ == "__main__":
     # Activate capture of SIGINT (Ctrl-C)
     signal.signal(signal.SIGINT, sigint_handler)
 
-    try:
-        GObject.threads_init()
-        g = Gui()
-        Gtk.main()
-    except KeyboardInterrupt:
-        pass
+    if GUI:
+
+        import gi
+        gi.require_version('Gtk', '3.0')
+        from gi.repository import Gtk, GdkPixbuf, GObject, GLib, Gio
+
+        try:
+            GObject.threads_init()
+            g = Gui()
+            Gtk.main()
+        except KeyboardInterrupt:
+            pass
+    
+    else:
+
+        cli = Cli()
+        cli.start()
