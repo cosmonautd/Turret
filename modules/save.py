@@ -34,29 +34,29 @@ def save(img, img_time, uploadqueue=None):
 
     if os.path.exists("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day)))):
         cv2.imwrite("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day), str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] \
-                                                                                                                                                                                            + "m" + str(img_time)[17:19] + "s" + ".png")), img) 
+                                                                                                                                                                                            + "m" + str(img_time)[17:23] + "s" + ".png")), img) 
     elif os.path.exists("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B')))):
         os.mkdir("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day))))
         cv2.imwrite("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day), str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] \
-                                                                                                                                                                                            + "m" + str(img_time)[17:19] + "s" + ".png")), img) 
+                                                                                                                                                                                            + "m" + str(img_time)[17:23] + "s" + ".png")), img) 
     elif os.path.exists("/".join(("detected", str(img_time.year)))):
         os.mkdir("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'))))
         os.mkdir("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day))))
         cv2.imwrite("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day), str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] \
-                                                                                                                                                                                            + "m" + str(img_time)[17:19] + "s" + ".png")), img) 
+                                                                                                                                                                                            + "m" + str(img_time)[17:23] + "s" + ".png")), img) 
     elif os.path.exists("detected"):
         os.mkdir("/".join(("detected", str(img_time.year))))
         os.mkdir("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'))))
         os.mkdir("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day))))
         cv2.imwrite("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day), str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] \
-                                                                                                                                                                                            + "m" + str(img_time)[17:19] + "s" + ".png")), img) 
+                                                                                                                                                                                            + "m" + str(img_time)[17:23] + "s" + ".png")), img) 
     else:
         os.mkdir("detected")
         os.mkdir("/".join(("detected", str(img_time.year))))
         os.mkdir("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'))))
         os.mkdir("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day))))
         cv2.imwrite("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day), str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] \
-                                                                                                                                                                                            + "m" + str(img_time)[17:19] + "s" + ".png")), img) 
+                                                                                                                                                                                            + "m" + str(img_time)[17:23] + "s" + ".png")), img) 
 
     if uploadqueue:
         uploadqueue.append(img_time) 
