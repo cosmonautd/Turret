@@ -92,11 +92,11 @@ class UploadQueue(object):
 
         """
         if len(self.uploadqueue) == 0:
-            print(str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:19] + "s", "[ADDED TO UPLOAD LIST]")
+            print(str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:23] + "s", "[ADDED TO UPLOAD LIST]")
             self.uploadqueue.append(img_time)
-        elif (not str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:19] + "s"
-                    == str(self.uploadqueue[-1])[:10] + " " + str(self.uploadqueue[-1])[11:13] + "h" + str(self.uploadqueue[-1])[14:16] + "m" + str(self.uploadqueue[-1])[17:19] + "s"):
-            print(str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:19] + "s" , "[ADDED TO UPLOAD LIST]")
+        elif (not str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:23] + "s"
+                    == str(self.uploadqueue[-1])[:10] + " " + str(self.uploadqueue[-1])[11:13] + "h" + str(self.uploadqueue[-1])[14:16] + "m" + str(self.uploadqueue[-1])[17:23] + "s"):
+            print(str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:23] + "s" , "[ADDED TO UPLOAD LIST]")
             self.uploadqueue.append(img_time)
 
 
@@ -125,13 +125,13 @@ class UploadQueue(object):
                     time.sleep(0.1) 
                 if self.drive:
                     disk_path = "/".join(("detected", str(img_time.year), str(img_time.month) + ". "
-                                         + img_time.strftime('%B'), str(img_time.day), str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:19] + "s" + ".png"))
-                    print(str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:19] + "s", "[UPLOAD STARTED]")
+                                         + img_time.strftime('%B'), str(img_time.day), str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:23] + "s" + ".png"))
+                    print(str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:23] + "s", "[UPLOAD STARTED]")
 
                     try:
                         self.drive.save_img(disk_path, upload_path) 
                         self.uploadqueue.popleft() 
-                        print(str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:19] + "s", "[UPLOAD FINISHED]")
+                        print(str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] + "m" + str(img_time)[17:23] + "s", "[UPLOAD FINISHED]")
                     except Exception as e:
                         print(str(e))
                         pass
