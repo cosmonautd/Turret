@@ -126,9 +126,7 @@ def loop():
     elif MODE == 'upperbody-face':
         frame, found = detect.double_cascade(frame)
     elif MODE == 'face-recognition':
-        _, found = detect.motion_detection(frame, thresh=50, drawboxes=True)
-        if found:
-            frame, _ = detect.face_recognition(frame)
+        frame, found = detect.new_face_recognition(frame)
 
     if found:
         now = datetime.datetime.now()

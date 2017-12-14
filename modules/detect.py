@@ -198,7 +198,7 @@ def face_recognition(frame):
             except ValueError: name = "Unknown"
             face_names.append(name)
         
-        for (top, right, bottom, left), name in zip(face_locations, face_names):
+        for (top, right, bottom, left), name in zip(face_locations, face_names) if name != "Unknown":
             # top = int((1/fraction)*top - 16)
             # right = int((1/fraction)*right + 16)
             # bottom = int((1/fraction)*bottom + 16)
