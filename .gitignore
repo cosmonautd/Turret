@@ -66,3 +66,4 @@ target/
 detected/
 faces/
 resources/credentials.json
+teleturret.py
