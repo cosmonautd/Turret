@@ -80,10 +80,12 @@ def init_camera():
     camera.set(CV_CAP_PROP_FRAME_HEIGHT, HEIGHT)
 
 # Soundcat object
-sound = soundcat.Soundcat(pps=1.0/5)
-sound.add_category('init', 'resources/sounds/init')
-sound.add_category('detected', 'resources/sounds/detected')
-sound.add_category('quit', 'resources/sounds/quit')
+sound = None
+if SPEAK:
+    sound = soundcat.Soundcat(pps=1.0/5)
+    sound.add_category('init', 'resources/sounds/init')
+    sound.add_category('detected', 'resources/sounds/detected')
+    sound.add_category('quit', 'resources/sounds/quit')
 
 # Managing Google Drive backup setting
 drive = None
