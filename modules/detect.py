@@ -167,7 +167,7 @@ def old_face_recognition(frame):
 database = None
 facedatabase = None
 facedatabase_encodings = None
-fraction = 1.0
+fraction = 0.25
 
 def face_recognition(frame):
 
@@ -200,13 +200,13 @@ def face_recognition(frame):
         
         for (top, right, bottom, left), name in zip(face_locations, face_names):
             if name != "Unknown":
-                # top = int((1/fraction)*top - 16)
-                # right = int((1/fraction)*right + 16)
-                # bottom = int((1/fraction)*bottom + 16)
-                # left = int((1/fraction)*left - 16)
-                cv2.rectangle(small_frame, (left, top), (right, bottom), (0, 0, 255), 2)
-                cv2.rectangle(small_frame, (left-1, top - 20), (max(right+1, left+12*len(name)), top), (0, 0, 255), cv2.FILLED)
+                top = int((1/fraction)*top - 16)
+                right = int((1/fraction)*right + 16)
+                bottom = int((1/fraction)*bottom + 16)
+                left = int((1/fraction)*left - 16)
+                cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+                cv2.rectangle(frame, (left-1, top - 20), (max(right+1, left+12*len(name)), top), (0, 0, 255), cv2.FILLED)
                 font = cv2.FONT_HERSHEY_DUPLEX
-                cv2.putText(small_frame, name, (left + 6, top - 6), font, 0.5, (255, 255, 255), 1)
+                cv2.putText(frame, name, (left + 6, top - 6), font, 0.5, (255, 255, 255), 1)
     
-    return small_frame, found
+    return frame, found
