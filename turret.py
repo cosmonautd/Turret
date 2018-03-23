@@ -1,20 +1,8 @@
 #!/usr/bin/python3
 
-import cv2
 import sys
-import numpy
-import array
-import signal
-import locale
-import argparse
-import datetime
 import textwrap
-from PIL import Image
-
-from modules import imgutils
-from modules import detect
-from modules import soundcat
-from modules import save
+import argparse
 
 # Arguments parsing
 if sys.platform == "linux" or sys.platform == "linux2":
@@ -45,6 +33,20 @@ parser.add_argument("-r", "--rotate", help="Rotates frame by specified angle")
 parser.add_argument("-m", "--mode", help="The detection mode")
 
 args = parser.parse_args()
+
+import cv2
+import sys
+import numpy
+import array
+import signal
+import locale
+import datetime
+from PIL import Image
+
+from modules import imgutils
+from modules import detect
+from modules import soundcat
+from modules import save
 
 # Set locale (standardize month names)
 if sys.platform == "linux" or sys.platform == "linux2":
