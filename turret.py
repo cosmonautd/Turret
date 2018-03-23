@@ -28,7 +28,6 @@ elif sys.platform == "win32":
 parser.add_argument("-s", "--speak", help="Turn on the turret's sound modules.", action="store_true")
 parser.add_argument("-g", "--gui", help="Show a graphical user interface.", action="store_true")
 parser.add_argument("-d", "--save_to_disk", help="Saves images on disk hierarchically by date (enabled by default in CLI operation)", action="store_true")
-parser.add_argument("-G", "--backup_gdrive", help="Saves images on Google Drive", action="store_true")
 parser.add_argument("-r", "--rotate", help="Rotates frame by specified angle")
 parser.add_argument("-m", "--mode", help="The detection mode")
 
@@ -58,7 +57,6 @@ elif sys.platform == "win32":
 SPEAK = args.speak or False
 GUI = args.gui or False
 SAVE_TO_DISK = args.save_to_disk or not GUI
-BACKUP_GOOGLEDRIVE = args.backup_gdrive and SAVE_TO_DISK
 ROTATE = int(args.rotate or 0)
 MODE = args.mode or 'motion'
 
@@ -89,27 +87,6 @@ if SPEAK:
     sound.add_category('detected', 'resources/sounds/detected')
     sound.add_category('quit', 'resources/sounds/quit')
 
-# Managing Google Drive backup setting
-drive = None
-upload = None
-
-def init_googledrive():
-    """
-    Initiate a Drive and UploadQueue objects for Google Drive backup
-    """
-    global drive, upload
-    # Only execute once
-    if drive == None and upload == None:
-        # Drive object
-        drive = save.Drive()
-
-        # UploadQueue object
-        upload = save.UploadQueue(drive)
-        upload.start()
-
-# Set initial Google Drive Backup configuration
-if BACKUP_GOOGLEDRIVE:
-    init_googledrive()
 
 def loop():
     """
@@ -137,7 +114,6 @@ def loop():
     if found:
         now = datetime.datetime.now()
         if SAVE_TO_DISK: save.save(frame, now)
-        if BACKUP_GOOGLEDRIVE: upload.append(now)
         if SPEAK: sound.play("detected", use_pps=True)
     
     return frame
@@ -183,12 +159,10 @@ class Gui:
         self.Frame = self.gtk.get_object("Frame")
         self.SpeakSwitch = self.gtk.get_object("SpeakSwitch")
         self.SaveToDiskSwitch = self.gtk.get_object("SaveToDiskSwitch")
-        self.BackupGoogleDriveSwitch = self.gtk.get_object("BackupGoogleDriveSwitch")
         self.DetectionModeCombo = self.gtk.get_object("DetectionModeCombo")
 
         self.init_speak_switch()
         self.init_savetodisk_switch()
-        self.init_backup_googledrive_switch()
         self.init_detectionmode_combo()
 
         init_camera()
@@ -234,29 +208,6 @@ class Gui:
         """
         global SAVE_TO_DISK
         SAVE_TO_DISK = self.SaveToDiskSwitch.get_active()
-
-        # Update backup elements. They are active and sensitive only if SAVE_TO_DISK is enabled
-        self.BackupGoogleDriveSwitch.set_active(BACKUP_GOOGLEDRIVE and SAVE_TO_DISK)
-        self.BackupGoogleDriveSwitch.set_sensitive(SAVE_TO_DISK)
-
-    def init_backup_googledrive_switch(self):
-        """
-        Connect the method update_backup_googledrive_switch() to BackupGoogleDriveSwitch.
-        Set initial state as defined in the command line arguments.
-        """
-        self.BackupGoogleDriveSwitch.connect("notify::active", self.update_backup_googledrive_switch)
-        self.BackupGoogleDriveSwitch.set_active(BACKUP_GOOGLEDRIVE and SAVE_TO_DISK)
-        self.BackupGoogleDriveSwitch.set_sensitive(SAVE_TO_DISK)
-
-    def update_backup_googledrive_switch(self, switch, params):
-        """
-        BACKUP_GOOGLEDRIVE defines if the turret saves detections on Google Drive.
-        The state of the Google Drive switch updates the global variable BACKUP_GOOGLEDRIVE.
-        """
-        global BACKUP_GOOGLEDRIVE, SAVE_TO_DISK
-        BACKUP_GOOGLEDRIVE = self.BackupGoogleDriveSwitch.get_active() and SAVE_TO_DISK
-        if BACKUP_GOOGLEDRIVE:
-            init_googledrive()
 
     def init_detectionmode_combo(self):
         """
@@ -304,7 +255,6 @@ def clean():
     Use this to close the turret's modules when shutting down.
     """
     if SPEAK: sound.play('quit')
-    if upload: upload.quit()
     global camera
     camera.release()
     pass
