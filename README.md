@@ -14,7 +14,7 @@ sudo apt-get install python3 python3-pip python3-gi cmake libboost-all-dev
  
 ```
 pip3 install --upgrade pip
-pip3 install --user pygame Pillow PyDrive face_recognition
+pip3 install --user pygame Pillow face_recognition
 ```
 
  - Install OpenCV for Python 3
@@ -28,7 +28,7 @@ pip3 install --user pygame Pillow PyDrive face_recognition
  
 ```
 pip install --upgrade pip
-pip install pygame Pillow PyDrive face_recognition
+pip install pygame Pillow face_recognition
 ```
  - Install OpenCV and PyGobject with pacman
 ```
@@ -49,5 +49,5 @@ sudo python setup.py install
  - Upgrade pip and install some dependencies
 ```
 python -m pip install --upgrade pip
-pip install opencv-python pygame Pillow PyDrive
+pip install opencv-python pygame Pillow
 ```
