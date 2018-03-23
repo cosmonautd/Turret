@@ -5,7 +5,6 @@ import collections
 import cv2
 import numpy
 from . import imgutils
-from . import facerec
 
 # Set locale (standardize month names)
 if sys.platform == "linux" or sys.platform == "linux2":
@@ -134,34 +133,6 @@ def motion_detection(frame, thresh=10, it=35, min_area=200, max_area=numpy.inf, 
     
     motion_detection_buffer.append(raw_frame)
 
-    return frame, found
-
-facerecognizer = None
-last = time.time()
-
-def old_face_recognition(frame):
-
-    global facerecognizer, last
-
-    if not facerecognizer:
-        facerecognizer = facerec.FaceRecognizer(buffersize=10)
-        facerecognizer.train()
-    
-    if time.time() - last > 10:
-        facerecognizer.clear_buffer()
-
-    frame, found, faces = single_cascade(frame, cascade=CASCADE_FACE,
-                                                return_faces=True,
-                                                drawboxes=True,
-                                                min_rectangle=(40,40))
-    
-    if found:
-        x, y, w, h = faces[0]
-        face = frame[y:h, x:w]
-        name = facerecognizer.recognize(face)
-        cv2.putText(frame, name, (x, y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        last = time.time()
-    
     return frame, found
 
 database = None
