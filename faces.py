@@ -125,12 +125,6 @@ class FaceManager:
         Connect the method clicked_deleteface_button() to DeleteFaceButton.
         """
         self.DeleteFaceButton.connect("clicked", self.clicked_deleteface_button)
-
-    def clicked_deleteface_button(self, button):
-        """
-        Delete all selected faces from dataset.
-        """
-        self.delete_face_samples()
     
     def clicked_deleteface_button(self, button):
         """
