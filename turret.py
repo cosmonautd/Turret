@@ -15,15 +15,6 @@ if sys.platform == "linux" or sys.platform == "linux2":
                                 ...    face-recognition:    Face detection and recognition
 
                                 '''), formatter_class=argparse.RawDescriptionHelpFormatter,)
-elif sys.platform == "win32":
-    parser = argparse.ArgumentParser(description="People detection turret. Detects people and optionally dispenses product.",
-                                    epilog=textwrap.dedent('''
-                                ...    Available modes:
-                                ...    --------------------------------
-                                ...    motion:              Motion detection function based on background subtraction.
-                                ...    upperbody-face:      Upperbody and face detection
-
-                                '''), formatter_class=argparse.RawDescriptionHelpFormatter,)
 
 parser.add_argument("-s", "--speak", help="Turn on the turret's sound modules.", action="store_true")
 parser.add_argument("-g", "--gui", help="Show a graphical user interface.", action="store_true")

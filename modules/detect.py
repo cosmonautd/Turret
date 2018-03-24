@@ -19,14 +19,6 @@ if sys.platform == "linux" or sys.platform == "linux2":
                             'upperbody-face' : 'Upperbody and face detection',
                             'face-recognition' : 'Face detection and recognition' }
 
-elif sys.platform == "win32":
-
-    detection_modes = [ 'motion',
-                        'upperbody-face']
-
-    mode_description = {    'motion': 'Motion detection',
-                            'upperbody-face' : 'Upperbody and face detection' }
-
 # Load Cascade Classifiers for upperbody and face
 # We use classifiers commonly found in opencv packages
 CASCADE_UPPERBODY = cv2.CascadeClassifier("resources/cascades/haarcascade_mcs_upperbody.xml")
