@@ -1,0 +1,12 @@
+{
+    "samples": [
+        {
+            "cluster": "general",
+            "intent": "greetings",
+            "text": "Hi Turret",
+            "entities": [
+                {"type": "self", "start": 1, "stop": 2}
+            ]
+        }
+    ]
+}
