@@ -1,7 +1,11 @@
 {
     "greetings": [
         "Hi, <NAME> :)",
-        "Hello, <NAME> :)",
-        "<NAME>! Hi there :D"
+        "Hello, <NAME> :)"
+    ],
+    "someone": [
+        "Let me check...",
+        "Wait a second, verifying...",
+        "Looking for targets..."
     ]
 }

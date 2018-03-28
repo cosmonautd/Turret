@@ -1,36 +1,50 @@
 """ Module for general conversation
 """
 
-import teleturret.answer as answer
+import os
+import datetime
+
+import cv2
+import numpy
+
+import answer
+
+def im2double(im):
+    info = numpy.iinfo(im.dtype)
+    return im.astype(numpy.float) / info.max
 
 class Base:
     """
     """
     def __init__(self):
-        self.answer_processor = answer.AnswerProcessor('general')
+        self.answer_processor = answer.AnswerProcessor('base')
         self.answer_processor.set_callback('greetings', self.greetings)
-        self.answer_processor.set_callback('thanks', self.thanks)
-        self.answer_processor.set_callback('goodbye', self.goodbye)
-        self.answer_processor.set_callback('whoareyou', self.whoareyou)
+        self.answer_processor.set_callback('someone', self.someone)
 
     def greetings(self, message, message_data, answer):
         """ Postprocess greetings
         """
         return answer
 
-    def thanks(self, message, message_data, answer):
-        """ Postprocess thanks
+    def someone(self, message, message_data, answer):
+        """ Postprocess someone
         """
-        return answer
-
-    def goodbye(self, message, message_data, answer):
-        """ Postprocess goodbye
-        """
-        return answer
-
-    def whoareyou(self, message, message_data, answer):
-        """ Postprocess whoareyou
-        """
+        now = datetime.datetime.now()
+        todaypath = '/'.join(('..', 'detected', str(now.year), str(now.month) + '. ' + now.strftime('%B'), str(now.day)))
+        detections = list()
+        for (_, _, filenames) in os.walk(todaypath):
+            detections.extend(filenames)
+            break
+        if len(detections) == 0:
+            answer.append({'type': 'text', 'text': 'I think nobody went to the lab today'})
+        else:
+            detections.sort()
+            lastframepath = os.path.join(todaypath, detections[-1])
+            lastframe = cv2.imread(lastframepath)
+            light = numpy.mean(im2double(lastframe).flatten())
+            if light > 0.3: answer.append({'type': 'text', 'text': 'Someone is in the lab!'})
+            else: answer.append({'type': 'text', 'text': 'I think the lab is empty'})
+            answer.append({'type': 'image', 'url': lastframepath})
         return answer
 
 link = Base()

@@ -1,4 +1,4 @@
-#!bin/python3
+#!/usr/bin/python3
 # coding: utf-8
 
 """ Turret telegram bot
@@ -15,7 +15,7 @@ import telegram.ext
 import nlu
 turretbot = nlu.NLU()
 
-import teleturret.modules.base as base
+from modules import base
 
 online_modules = [base]
 
@@ -70,7 +70,7 @@ def generate_answer(bot, answer, update):
         if a['type'] == 'text':
             update.effective_message.reply_text(text=a['text'])
         if a['type'] == 'image':
-            update.effective_message.reply_photo(photo=a['url'])
+            update.effective_message.reply_photo(photo=open(a['url'], 'rb'))
         if a['type'] == 'lyrics':
             update.effective_message.reply_text(text=a['lyrics'])
         if a['type'] == 'select':
@@ -102,4 +102,5 @@ dispatcher.add_handler(start_handler)
 text_handler = telegram.ext.MessageHandler(telegram.ext.Filters.text, answer_text)
 dispatcher.add_handler(text_handler)
 
+print("Turret Bot ready!")
 updater.start_polling()

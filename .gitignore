@@ -66,3 +66,4 @@ target/
 detected/
 faces/
 keys.json
+*.dat

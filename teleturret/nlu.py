@@ -10,11 +10,11 @@ import operator
 import mitie
 import spacy
 import textblob
-import teleturret.external.python_tf_idf.tfidf as tfidf
+import external.python_tf_idf.tfidf as tfidf
 
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-import teleturret.util as util
+import util
 
 spacy_nlp = spacy.load('en')
 
@@ -26,10 +26,10 @@ class TfIdfIntentProcessor:
     def __init__(self):
         self.table = None
         self.ignore_pos = ['DET']
-    
+
     def train(self):
         pass
-    
+
     def load(self):
         with open('training.json') as training_file:
             training = json.load(training_file)
@@ -44,12 +44,12 @@ class TfIdfIntentProcessor:
                 for i, _ in enumerate(tokens):
                     if sample_doc[i].pos_ in self.ignore_pos: del tokens[i]
                 intents[sample['intent']] += tokens
-            
+
             self.table = tfidf.TfIdf()
             for intent in intents.keys():
                 tokens = list(set(intents[intent]))
                 self.table.add_document(intent, tokens)
-    
+
     def classify(self, text):
         tokens = [token.text.lower() for token in spacy_nlp(text) if token.pos_ not in self.ignore_pos]
         tokens = util.preserve_entity_annotations(tokens)
@@ -63,13 +63,13 @@ class IntentProcessor:
 
     def __init__(self):
         self.processor = TfIdfIntentProcessor()
-    
+
     def train(self):
         self.processor.train()
-    
+
     def load(self):
         self.processor.load()
-    
+
     def classify(self, text):
         return self.processor.classify(text)
 
@@ -78,7 +78,7 @@ class MitEntityProcessor:
     """
     def __init__(self):
         self.ner = None
-    
+
     def train(self):
         with open('training.json') as training_file:
             training = json.load(training_file)
@@ -95,8 +95,12 @@ class MitEntityProcessor:
         self.ner.save_to_disk("models/turret_ner_model.dat")
 
     def load(self):
-        self.ner = mitie.named_entity_extractor('models/turret_ner_model.dat')
-    
+        try:
+            self.ner = mitie.named_entity_extractor('models/turret_ner_model.dat')
+        except:
+            self.train()
+            self.ner = mitie.named_entity_extractor('models/turret_ner_model.dat')
+
     def recognize(self, text):
         output = list()
         tokens = [token.text if token.text not in emoji_patterns else None for token in spacy_nlp(text)]
@@ -116,13 +120,13 @@ class EntityProcessor:
     """
     def __init__(self):
         self.processor = MitEntityProcessor()
-    
+
     def train(self):
         self.processor.train()
 
     def load(self):
         self.processor.load()
-    
+
     def recognize(self, text):
         return self.processor.recognize(text)
 
@@ -135,7 +139,7 @@ class Context:
         """
         self.context_file = 'context.json'
         self.__load__()
-    
+
     def __load__(self):
         """ Load context from file or create it for the first time
         """
@@ -148,7 +152,7 @@ class Context:
                 context = dict()
                 json.dump(context, context_file)
         return context
-    
+
     def __commit__(self, context):
         """ Commit changes to context file
         """
@@ -165,7 +169,7 @@ class Context:
                 return context[user][key]
             else: return None
         else: return None
-    
+
     def write(self, user, key, value):
         """ Write to context
         """
@@ -174,7 +178,7 @@ class Context:
         context = self.__load__()
         context[user][key] = value
         self.__commit__(context)
-    
+
     def has_user(self, user):
         """ Test if there's context for a user
         """
@@ -189,7 +193,7 @@ class Context:
             context[user] = dict()
             context[user]['main_context'] = str()
             self.__commit__(context)
-    
+
     def has_key(self, user, key):
         """ Test if given key exists for user
         """
@@ -205,23 +209,23 @@ class NLU:
     def __init__(self):
         """
         """
-        self.entity_processor = EntityProcessor()
+        # self.entity_processor = EntityProcessor()
         self.intent_processor = IntentProcessor()
 
-        try: self.entity_processor.load()
-        except: self.entity_processor.train()
+        # try: self.entity_processor.load()
+        # except: self.entity_processor.train()
         self.intent_processor.load()
-    
+
     def pipe(self, f_list, data):
         output = data
         for f in f_list:
             output = f(output)
         return output
-        
+
     def preprocess(self, data):
         output = data
         return output
-    
+
     def language(self, data):
         """
         """
@@ -244,7 +248,7 @@ class NLU:
             "neutral"  : scores['neu']
         }
         return output
-    
+
     def entities(self, data):
         output = data
         output['entities'] = self.entity_processor.recognize(data['text_en'])
@@ -253,18 +257,19 @@ class NLU:
             output['tokens_tagged'][entity['start']:entity['stop']] = ['#%s#' % entity['type']]
         output['text_en_tagged'] = util.untokenize(output['tokens_tagged'])
         return output
-    
+
     def intents(self, data):
         output = data
-        output['intents'] = self.intent_processor.classify(data['text_en_tagged'])
+        # output['intents'] = self.intent_processor.classify(data['text_en_tagged'])
+        output['intents'] = self.intent_processor.classify(data['text_en'])
         output['intent'] = max(output['intents'], key=output['intents'].get)
         return output
-    
+
     def postprocess(self, data):
         output = data
-        del output['tokens_tagged']
+        # del output['tokens_tagged']
         return output
-    
+
     def compute(self, text):
         """
         """
@@ -273,7 +278,7 @@ class NLU:
             self.preprocess,
             self.language,
             self.sentiments,
-            self.entities,
+            # self.entities,
             self.intents,
             self.postprocess
         ], data)
