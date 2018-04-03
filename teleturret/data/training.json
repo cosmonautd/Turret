@@ -11,6 +11,12 @@
             "intent": "someone",
             "text": "Is someone there?",
             "entities": []
+        },
+        {
+            "cluster": "base",
+            "intent": "who",
+            "text": "Who is there?",
+            "entities": []
         }
     ]
 }
