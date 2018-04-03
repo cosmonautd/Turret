@@ -12,8 +12,8 @@ import requests
 import telegram
 import telegram.ext
 
-import nlu
-turretbot = nlu.NLU()
+import botkit.nlu
+turretbot = botkit.nlu.NLU(disable=['entities'])
 
 from modules import base
 

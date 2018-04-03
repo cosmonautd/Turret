@@ -7,7 +7,7 @@ import datetime
 import cv2
 import numpy
 
-import answer
+import botkit.answer
 
 def im2double(im):
     info = numpy.iinfo(im.dtype)
@@ -17,7 +17,7 @@ class Base:
     """
     """
     def __init__(self):
-        self.answer_processor = answer.AnswerProcessor('base')
+        self.answer_processor = botkit.answer.AnswerProcessor('base')
         self.answer_processor.set_callback('greetings', self.greetings)
         self.answer_processor.set_callback('someone', self.someone)
 
