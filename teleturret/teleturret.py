@@ -29,12 +29,12 @@ for m in online_modules:
     for i in m.link.answer_processor.intents:
         link[i] = m.link.answer_processor
 
-# Load Telegram key and allowed ids
+# Load Telegram key and allowed list
 with open('config.json') as config_file:
     config = json.load(config_file)
     TELEGRAM_BOT_KEY = config['keys']['telegram']['teleturretbot']
-    ALLOWED_IDS = list()
-    if 'allowed_ids' in config: ALLOWED_IDS = config['allowed_ids']
+    ALLOWED = list()
+    if 'allowed' in config: ALLOWED = config['allowed']
 
 # Set up logging
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -45,14 +45,14 @@ dispatcher = updater.dispatcher
 
 def allowed(update):
     """
-    Return True if chat_id is in list ALLOWED_IDS
+    Return True if username is in list ALLOWED
     """
     if update.message is not None:
-        return  str(update.message.chat_id) in ALLOWED_IDS \
+        return '@' + update.effective_message.from_user.username in ALLOWED \
                 and ( update.message.chat.type == 'private' \
                     or (update.message.chat.type == 'group' and '@teleturretbot' in update.message.text) )
     elif update.callback_query is not None:
-        return  str(update.effective_message.chat.id) in ALLOWED_IDS
+        return '@' + update.effective_message.from_user.username in ALLOWED
 
 def build_message(update, type_):
     """
