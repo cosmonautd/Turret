@@ -7,21 +7,21 @@ import argparse
 
 # Parse arguments
 if sys.platform == "linux" or sys.platform == "linux2":
-    parser = argparse.ArgumentParser(description="People detection turret. Detects people and optionally dispenses product.",
+    parser = argparse.ArgumentParser(description="People detection turret. It detects people and optionally dispenses product.",
                                     epilog=textwrap.dedent('''
-                                ...    Available modes:
-                                ...    --------------------------------
-                                ...    motion:              Motion detection function based on background subtraction.
-                                ...    upperbody-face:      Upperbody and face detection
-                                ...    face-recognition:    Face detection and recognition
+                                    .  Available modes:
+                                    .  --------------------------------
+                                    .  motion:              Motion detection function based on background subtraction.
+                                    .  upperbody-face:      Upperbody and face detection
+                                    .  face-recognition:    Face detection and recognition
 
                                 '''), formatter_class=argparse.RawDescriptionHelpFormatter,)
 
-parser.add_argument("-s", "--speak", help="Turn on the turret's sound modules.", action="store_true")
-parser.add_argument("-g", "--gui", help="Show a graphical user interface.", action="store_true")
-parser.add_argument("-d", "--save_to_disk", help="Saves images on disk hierarchically by date (enabled by default in CLI operation)", action="store_true")
-parser.add_argument("-r", "--rotate", help="Rotates frame by specified angle")
-parser.add_argument("-m", "--mode", help="The detection mode")
+parser.add_argument("-s", help="Turn on the turret's sound modules.", action="store_true")
+parser.add_argument("-g", help="Show a graphical user interface.", action="store_true")
+parser.add_argument("-d", help="Save images on disk hierarchically by date", action="store_true")
+parser.add_argument("-r", help="Rotate frame by specified angle")
+parser.add_argument("-m", help="The detection mode")
 
 args = parser.parse_args()
 
@@ -49,11 +49,11 @@ elif sys.platform == "win32":
     locale.setlocale(locale.LC_TIME, "usa_usa")
 
 # Turret global variables
-SPEAK = args.speak or False
-GUI = args.gui or False
-SAVE_TO_DISK = args.save_to_disk or not GUI
-ROTATE = int(args.rotate or 0)
-MODE = args.mode or 'motion'
+SPEAK = args.s or False
+GUI = args.g or False
+SAVE_TO_DISK = args.d or not GUI
+ROTATION = int(args.r or 0)
+MODE = args.m or 'motion'
 
 # Frame width and height
 WIDTH  = 640
@@ -100,8 +100,8 @@ def loop():
     _, frame = camera.read()
 
     # Rotate if required
-    if ROTATE != 0:
-        frame = imgutils.rotate_bound(frame, ROTATE)
+    if ROTATION != 0:
+        frame = imgutils.rotate_bound(frame, ROTATION)
 
     found = None
 
