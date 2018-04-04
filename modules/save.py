@@ -3,15 +3,17 @@ Upload images to the cloud in a hierarchical time structure.
 """
 # coding: utf-8
 
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
-import os.path
-import sys, time, mimetypes
-import socket
-import cv2
-from collections import deque
-import threading
+# Standard imports
+import os
+import sys
 import time
+import socket
+import mimetypes
+import threading
+from collections import deque
+
+# External imports
+import cv2
 
 def save(img, img_time, uploadqueue=None):
     """Save images to disc or a Google Drive account.

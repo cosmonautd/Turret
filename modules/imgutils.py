@@ -1,15 +1,17 @@
 """
 Some utility functions for image processing.
-Some of these are copies or modifications from https://www.pyimagesearch.com/. Excellent blog
+Some of these are copies or modifications from https://www.pyimagesearch.com/. Excellent blog!
 """
 # coding: utf-8
 
-import cv2
+# Standard imports
+import os
 import time
 import datetime
-import os
-import numpy
 
+# External imports
+import cv2
+import numpy
 
 def detect_pattern(img, cascade, min_rectangle):
     """Pattern detection function.

@@ -3,10 +3,13 @@ Categorize and play sounds randomly, based on category.
 """
 # coding: utf-8
 
-import pygame
-import random
+# Standard imports
 import os
 import time
+import random
+
+# External imports
+import pygame
 
 class Soundcat(object):
     """Categorize and play sounds randomly, based on category.

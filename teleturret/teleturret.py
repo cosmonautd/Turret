@@ -6,41 +6,47 @@
 
 # Standard imports
 import json
+import logging
 import requests
 
 # External imports
 import telegram
 import telegram.ext
 
+# Project imports
 import botkit.nlu
-turretbot = botkit.nlu.NLU(disable=['entities'])
 
+# Teleturret imports
 from modules import base
 
+# Initialize botkit, disable entity recognition, activate base module
+turretbot = botkit.nlu.NLU(disable=['entities'])
 online_modules = [base]
 
+# Get all defined intents and link to their answer processors
 link = dict()
 for m in online_modules:
     for i in m.link.answer_processor.intents:
         link[i] = m.link.answer_processor
 
-# Constants
-with open('keys.json') as keys_file:
-    keys = json.load(keys_file)
-    TELEGRAM_BOT_KEY = keys["telegram"]["teleturretbot"]
+# Load Telegram key and allowed ids
+with open('config.json') as config_file:
+    config = json.load(config_file)
+    TELEGRAM_BOT_KEY = config['keys']['telegram']['teleturretbot']
+    ALLOWED_IDS = list()
+    if 'allowed_ids' in config: ALLOWED_IDS = config['allowed_ids']
 
-# Currently allowed chat ids
-ALLOWED_IDS = [
-    "224909287",  # @cosmonautd
-]
-
-import logging
+# Set up logging
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+# Set up Telegram updated and dispatcher
 updater = telegram.ext.Updater(token=TELEGRAM_BOT_KEY)
 dispatcher = updater.dispatcher
 
 def allowed(update):
+    """
+    Return True if chat_id is in list ALLOWED_IDS
+    """
     if update.message is not None:
         return  str(update.message.chat_id) in ALLOWED_IDS \
                 and ( update.message.chat.type == 'private' \
@@ -49,6 +55,9 @@ def allowed(update):
         return  str(update.effective_message.chat.id) in ALLOWED_IDS
 
 def build_message(update, type_):
+    """
+    Build a message compatible with botkit
+    """
     message = dict()
     message['type'] = type_
     message['username'] = '@' + update.effective_message.from_user.username
@@ -60,12 +69,18 @@ def build_message(update, type_):
     return message
 
 def build_menu(buttons, n_cols, header_buttons=None, footer_buttons=None):
+    """
+    Generate inline menu markup for Telegram
+    """
     menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
     if header_buttons: menu.insert(0, header_buttons)
     if footer_buttons: menu.append(footer_buttons)
     return menu
 
 def generate_answer(bot, answer, update):
+    """
+    Interpret botkit answers and produce Telegram answers
+    """
     for a in answer:
         if a['type'] == 'text':
             update.effective_message.reply_text(text=a['text'])
@@ -83,24 +98,37 @@ def generate_answer(bot, answer, update):
             bot.send_message(chat_id=update.effective_message.chat.id, text=a['text'], reply_markup=reply_markup)
 
 def teleturretbot(update, type_, bot):
+    """
+    Get client message, forward to botkit
+    Get botkit answers, generate respective Telegram actions
+    """
     message = build_message(update, type_)
     message_data = turretbot.compute(message['text'])
     message_data['answer'] = link[message_data['intent']].compute(message, message_data)
     generate_answer(bot, message_data['answer'], update)
 
 def start(bot, update):
+    """
+    Process /start commmand
+    """
     if allowed(update):
         bot.send_message(chat_id=update.message.chat_id, text="I see you!")
 
 def answer_text(bot, update):
+    """
+    Process arbitrary text
+    """
     if allowed(update):
         teleturretbot(update, 'text', bot)
 
+# Set up handler for /start command
 start_handler = telegram.ext.CommandHandler('start', start)
 dispatcher.add_handler(start_handler)
 
+# Set up handler for arbitrary text
 text_handler = telegram.ext.MessageHandler(telegram.ext.Filters.text, answer_text)
 dispatcher.add_handler(text_handler)
 
+# I see you
 print("Turret Bot ready!")
 updater.start_polling()

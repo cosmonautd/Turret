@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 
+# Import packages for arguments parsing
 import sys
 import textwrap
 import argparse
 
-# Arguments parsing
+# Parse arguments
 if sys.platform == "linux" or sys.platform == "linux2":
     parser = argparse.ArgumentParser(description="People detection turret. Detects people and optionally dispenses product.",
                                     epilog=textwrap.dedent('''
@@ -24,21 +25,24 @@ parser.add_argument("-m", "--mode", help="The detection mode")
 
 args = parser.parse_args()
 
-import cv2
-import sys
-import numpy
+# Import standard packages
 import array
 import signal
 import locale
 import datetime
+
+# Import external packages
+import cv2
+import numpy
 from PIL import Image
 
+# Import project packages
 from modules import imgutils
 from modules import detect
 from modules import soundcat
 from modules import save
 
-# Set locale (standardize month names)
+# Set locale (standardize month names to english)
 if sys.platform == "linux" or sys.platform == "linux2":
     locale.setlocale(locale.LC_TIME, "en_US.utf8")
 elif sys.platform == "win32":
@@ -51,14 +55,15 @@ SAVE_TO_DISK = args.save_to_disk or not GUI
 ROTATE = int(args.rotate or 0)
 MODE = args.mode or 'motion'
 
-# Width and height of the frames our turret will process
+# Frame width and height
 WIDTH  = 640
 HEIGHT = 480
-# Codes for OpenCV camera settings
+
+# OpenCV camera settings
 CV_CAP_PROP_FRAME_WIDTH  = 3
 CV_CAP_PROP_FRAME_HEIGHT = 4
 
-# Managing camera
+# Configure camera
 camera = None
 def init_camera():
     """
@@ -70,31 +75,32 @@ def init_camera():
     camera.set(CV_CAP_PROP_FRAME_WIDTH, WIDTH)
     camera.set(CV_CAP_PROP_FRAME_HEIGHT, HEIGHT)
 
-# Soundcat object
-sound = None
+# Configure speaker
+speaker = None
 if SPEAK:
-    sound = soundcat.Soundcat(pps=1.0/5)
-    sound.add_category('init', 'resources/sounds/init')
-    sound.add_category('detected', 'resources/sounds/detected')
-    sound.add_category('quit', 'resources/sounds/quit')
+    speaker = soundcat.Soundcat(pps=1.0/5)
+    speaker.add_category('init', 'resources/sounds/init')
+    speaker.add_category('detected', 'resources/sounds/detected')
+    speaker.add_category('quit', 'resources/sounds/quit')
 
-
+# Main operation
 def loop():
     """
     Get a new frame from camera.
-    Process this frame.
-    Write to an image file, which is awful, but the only way it worked.
-    Display the file on the Frame element of the main window.
+    Process this frame according to current detection mode.
     """
     global camera
 
-    retval, frame = camera.read()
+    # Capture frame
+    _, frame = camera.read()
 
+    # Rotate if required
     if ROTATE != 0:
         frame = imgutils.rotate_bound(frame, ROTATE)
 
     found = None
 
+    # Process according to current detection mode
     if MODE is None or MODE == 'motion':
         frame, found = detect.motion_detection(frame, thresh=50, drawboxes=False)
     elif MODE == 'upperbody-face':
@@ -102,35 +108,37 @@ def loop():
     elif MODE == 'face-recognition':
         frame, found = detect.face_recognition(frame)
 
+    # Save detections
     if found:
         now = datetime.datetime.now()
         if SAVE_TO_DISK: save.save(frame, now)
-        if SPEAK: sound.play("detected", use_pps=True)
+        if SPEAK: speaker.play("detected", use_pps=True)
     
     return frame
 
 
 class Cli:
     """
-    A class to control the turret's CLI operations.
+    A class to control CLI operations.
     """
 
     def __init__(self):
         """
-        Cli constructor
+        Initialize camera
         """
         init_camera()
-        if SPEAK: sound.play("init")
+        if SPEAK: speaker.play("init")
     
     def start(self):
-        """ Main Turret operation
+        """
+        Run loop
         """
         while True:
             loop()
 
 class Gui:
     """
-    A class to control the turret's GUI operations.
+    A class to control GUI operations.
     """
 
     def __init__(self):
@@ -138,7 +146,7 @@ class Gui:
         Gui constructor
 
         Load GUI template from gui.glade file into a Gtk.Builder object.
-        Intantiate objects for each necessary GUI element.
+        Instantiate objects for every dynamic GUI element.
         Initiate video capture.
         Start frame update.
         """
@@ -165,7 +173,7 @@ class Gui:
             self.MainWindow.connect("delete-event", self.close_button_pressed)
             self.MainWindow.show_all()
 
-        if SPEAK: sound.play("init")
+        if SPEAK: speaker.play("init")
 
     def init_speak_switch(self):
         """
@@ -234,7 +242,8 @@ class Gui:
         """
         frame = loop()
 
-        h, w, d = frame.shape
+        # Convert OpenCV image format to GDK Pixbuf
+        h, w, _ = frame.shape
         frame_show = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pixbuf = GdkPixbuf.Pixbuf.new_from_data(frame_show.flatten(), GdkPixbuf.Colorspace.RGB, False, 8, w, h, w*3, None, None)
         self.Frame.set_from_pixbuf(pixbuf)
@@ -245,7 +254,7 @@ def clean():
     """
     Use this to close the turret's modules when shutting down.
     """
-    if SPEAK: sound.play('quit')
+    if SPEAK: speaker.play('quit')
     global camera
     camera.release()
     pass
@@ -262,6 +271,7 @@ if __name__ == "__main__":
     # Activate capture of SIGINT (Ctrl-C)
     signal.signal(signal.SIGINT, sigint_handler)
 
+    # Execute GUI or CLI 
     if GUI:
 
         import gi
