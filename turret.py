@@ -77,11 +77,16 @@ def init_camera():
 
 # Configure speaker
 speaker = None
-if SPEAK:
-    speaker = soundcat.Soundcat(pps=1.0/5)
-    speaker.add_category('init', 'resources/sounds/init')
-    speaker.add_category('detected', 'resources/sounds/detected')
-    speaker.add_category('quit', 'resources/sounds/quit')
+def init_speaker():
+    """
+    Initialize speaker modules
+    """
+    global speaker
+    if SPEAK:
+        speaker = soundcat.Soundcat(pps=1.0/5)
+        speaker.add_category('init', 'resources/sounds/init')
+        speaker.add_category('detected', 'resources/sounds/detected')
+        speaker.add_category('quit', 'resources/sounds/quit')
 
 # Main operation
 def loop():
@@ -127,6 +132,7 @@ class Cli:
         Initialize camera
         """
         init_camera()
+        init_speaker()
         if SPEAK: speaker.play("init")
     
     def start(self):
@@ -165,6 +171,7 @@ class Gui:
         self.init_detectionmode_combo()
 
         init_camera()
+        init_speaker()
 
         GLib.idle_add(self.update_frame)
 
@@ -190,6 +197,7 @@ class Gui:
         """
         global SPEAK
         SPEAK = self.SpeakSwitch.get_active()
+        init_speaker()
 
     def init_savetodisk_switch(self):
         """
