@@ -69,3 +69,4 @@ keys.json
 *.dat
 botkit
 .face.jpg
+config.json
