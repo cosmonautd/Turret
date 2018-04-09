@@ -40,7 +40,7 @@ def detect_pattern(img, cascade, min_rectangle):
     return rects, img
 
 
-def box(coords, img, color=(127,255,0)):
+def box(coords, img, color=(0,255,0)):
     """Draw a rectangle in an image.
     
         Args:
