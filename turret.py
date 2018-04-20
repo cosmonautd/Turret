@@ -11,9 +11,10 @@ if sys.platform == "linux" or sys.platform == "linux2":
                                     epilog=textwrap.dedent('''
                                     .  Available modes:
                                     .  --------------------------------
-                                    .  motion:              Motion detection function based on background subtraction.
-                                    .  upperbody-face:      Upperbody and face detection
-                                    .  face-recognition:    Face detection and recognition
+                                    .  motion:               Motion detection function based on background subtraction.
+                                    .  upperbody-face:       Upperbody and face detection
+                                    .  face-recognition:     Face detection and recognition
+                                    .  gesture-recognition:  Gesture recognition
 
                                 '''), formatter_class=argparse.RawDescriptionHelpFormatter,)
 
@@ -112,6 +113,8 @@ def loop():
         frame, found = detect.double_cascade(frame)
     elif MODE == 'face-recognition':
         frame, found = detect.face_recognition(frame)
+    elif MODE == 'gesture-recognition':
+        frame, found = detect.gesture_recognition(frame)
 
     # Save detections
     if found:
