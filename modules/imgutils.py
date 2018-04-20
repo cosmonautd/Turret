@@ -131,17 +131,17 @@ def resize(img, width=None, height=None):
     
     # If just one of the new size parameters is given, keep aspect ratio
     if width and not height:
-        height = h*(100/w)
+        height = int(h*(100/w))
     elif height and not width:
-        width = w*(100/h)
+        width = int(w*(100/h))
     elif not height and not width:
         return img
     
     # Choose interpolation method based on type of operation, shrink or enlarge
     if width*height < w*h:
-        return cv2.resize(img, (width, height), interpolation = cv2.INTER_AREA);
+        return cv2.resize(img, (width, height), interpolation = cv2.INTER_AREA)
     else:
-        return cv2.resize(img, (width, height), interpolation = cv2.INTER_LINEAR);
+        return cv2.resize(img, (width, height), interpolation = cv2.INTER_LINEAR)
 
 
 def crop(img, startx, endx, starty, endy):
