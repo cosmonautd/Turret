@@ -208,6 +208,11 @@ def face_recognition(frame, drawboxes=True):
     return frame, found
 
 
+train_counter = 0
+X = []
+Y = []
+trained = False
+classifier = None
 roi_buffer = collections.deque(maxlen=1)
 def gesture_recognition(frame):
     """ Perform gesture recognition
@@ -226,45 +231,66 @@ def gesture_recognition(frame):
 
     if len(motion_detection_buffer) > 0:
 
-        # Process first_crop
-        first_crop = cv2.cvtColor(motion_detection_buffer[-1], cv2.COLOR_BGR2GRAY)
-        first_crop = cv2.GaussianBlur(first_crop, (21, 21), 0)
+        global train_counter, X, Y, trained, classifier
+        if train_counter < 50:
+            # Process first_crop
+            first_crop = cv2.cvtColor(motion_detection_buffer[-1], cv2.COLOR_BGR2GRAY)
+            first_crop = cv2.GaussianBlur(first_crop, (21, 21), 0)
 
-        # Resize the frame, convert it to grayscale, and blur it
-        # crop = imgutils.resize(crop, width=100)
-        crop = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-        crop = cv2.GaussianBlur(crop, (21, 21), 0)
+            # Resize the frame, convert it to grayscale, and blur it
+            # crop = imgutils.resize(crop, width=100)
+            crop = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+            crop = cv2.GaussianBlur(crop, (21, 21), 0)
 
-        # Compute the absolute difference between the current frame and first frame
-        frameDelta = cv2.absdiff(first_crop, crop)
-        thresh = cv2.threshold(frameDelta, 10, 255, cv2.THRESH_BINARY)[1]
+            # Compute the absolute difference between the current frame and first frame
+            delta = cv2.absdiff(first_crop, crop)
+            delta = cv2.threshold(delta, 20, 255, cv2.THRESH_BINARY)[1]
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(11, 11))
+            delta = cv2.morphologyEx(delta, cv2.MORPH_CLOSE, kernel)
 
-        # Dilate the thresholded image to fill in holes, then find contours on thresholded image
-        thresh = cv2.dilate(thresh, None, iterations=50)
-        (_, cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
-            cv2.CHAIN_APPROX_SIMPLE)
+            frame[50:350,50:350] = cv2.cvtColor(delta, cv2.COLOR_GRAY2RGB)
+            X = [p for row in raw_crop for p in row]
+            Y = [1 if p > 100 else 0 for row in delta for p in row]
+            train_counter += 1
+        elif not trained:
+            from sklearn.neural_network import MLPClassifier
+            classifier = MLPClassifier(hidden_layer_sizes=(5, 10, 5), activation='logistic', solver='adam', learning_rate='adaptive')
+            classifier.fit(X, Y)
+            trained = True
+        elif trained:
+            segm = classifier.predict(raw_crop.reshape(300*300, 3))
+            segm = segm*255
+            segm = segm.reshape(300,300,1)
+            segm = segm.astype(numpy.float32)
+            frame[50:350,50:350] = cv2.cvtColor(segm, cv2.COLOR_GRAY2RGB)
         
-        if len(cnts) == 0:
-            try:
-                cv2.rectangle(show_crop, roi_buffer[-1][0], roi_buffer[-1][1], (0, 0, 255), 2)
-            except:
-                pass
-        else:
-            max_cnt = cnts[0]
-            for c in cnts:
-                if (len(c) > len(max_cnt)):
-                    max_cnt = c
-            (x, y, w, h) = cv2.boundingRect(max_cnt)
-            if w*h > min_area:
-                roi_buffer.append(((x, y), (x + w, y + h)))
-            try:
-                cv2.rectangle(show_crop, roi_buffer[-1][0], roi_buffer[-1][1], (0, 0, 255), 2)
-            except:
-                pass
+        # # Dilate the thresholded image to fill in holes, then find contours on thresholded image
+        # dilated = cv2.dilate(delta, None, iterations=15)
+        # (_, cnts, _) = cv2.findContours(dilated.copy(), cv2.RETR_EXTERNAL,
+        #     cv2.CHAIN_APPROX_SIMPLE)
+        
+        # if len(cnts) == 0:
+        #     try:
+        #         cv2.rectangle(show_crop, roi_buffer[-1]['top-left'], roi_buffer[-1]['bottom-right'], (0, 0, 255), 2)
+        #     except:
+        #         pass
+        # else:
+        #     max_cnt = cnts[0]
+        #     for c in cnts:
+        #         if (len(c) > len(max_cnt)):
+        #             max_cnt = c
+        #     (x, y, w, h) = cv2.boundingRect(max_cnt)
+        #     if w*h > min_area:
+        #         roi_buffer.append({'x': x, 'y': y, 'w': w, 'h': h, 'top-left': (x, y), 'bottom-right':(x + w, y + h)})
+        #     try:
+        #         cv2.rectangle(show_crop, roi_buffer[-1]['top-left'], roi_buffer[-1]['bottom-right'], (0, 0, 255), 2)
+        #     except:
+        #         pass
             
-        frame[50:350,50:350] = show_crop
+        # frame[50:350,50:350] = show_crop
     
-    motion_detection_buffer.append(raw_crop)
+    if train_counter == 0:
+        motion_detection_buffer.append(raw_crop)
 
     # crop = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
     # crop = cv2.medianBlur(crop, 5)
