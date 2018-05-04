@@ -1,0 +1,22 @@
+{
+    "name": "turret",
+    "version": "1.0.0",
+    "description": "Access control for physical environments using computer vision and machine guns.",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron ."
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/cosmonautd/Turret.git"
+    },
+    "author": "David Borges",
+    "license": "UNLICENSED",
+    "bugs": {
+        "url": "https://github.com/cosmonautd/Turret/issues"
+    },
+    "homepage": "https://github.com/cosmonautd/Turret#readme",
+    "devDependencies": {
+        "electron": "^2.0.0"
+    }
+}
