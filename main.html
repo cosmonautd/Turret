@@ -1,15 +1,40 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Turret</title>
-  </head>
-  <body>
-    <img src="http://localhost:5000/video_feed">
+    <head>
+        <meta charset="UTF-8">
+        <title>Turret</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="assets/css/bootstrap-responsive.css" rel="stylesheet">
+        <link rel="stylesheet" href="resources/gui/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="main.css" />
+    </head>
+    <body>
+        <div class="container-fluid fit"> <!-- If Needed Left and Right Padding in 'md' and 'lg' screen means use container class -->
+            <div class="row fit">
+                <div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 fit">
+                    <!-- Video -->
+        			<img class="fit" src="http://localhost:5000/video_feed">
+                </div>
+                <div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 fit">
+                    <label class="switch switch-slide">
+                            <input class="switch-input" type="checkbox" />
+                            <span class="switch-label" data-on="Speakers ON" data-off="Speakers OFF"></span> 
+                            <span class="switch-handle"></span>
+                    </label>
+                </div>
+                <div class="col-xs-12 col-sm-2 col-md-2 col-lg-2 fit">
+                    <label class="switch switch-slide">
+                            <input class="switch-input" type="checkbox" />
+                            <span class="switch-label" data-on="Save ON" data-off="Save OFF"></span> 
+                            <span class="switch-handle"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
 
-    <script>
-      // You can also require other files to run in this process
-      require('./renderer.js')
-    </script>
-  </body>
+        <script>
+        // You can also require other files to run in this process
+        require('./renderer.js')
+        </script>
+    </body>
 </html>

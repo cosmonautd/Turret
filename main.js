@@ -10,9 +10,10 @@ let window
 function createWindow () {
     // Create the browser window.
     window = new BrowserWindow({
-        width:640+220, 
-        height:480+20, 
-        center:true, 
+        width:640+160,
+        height:455,
+        center:true,
+        useContentSize:true,
         resizable:false,
     })
     window.setMenu(null)
