@@ -32,11 +32,5 @@ pip install pygame Pillow face_recognition
 ```
  - Install OpenCV and PyGobject with pacman
 ```
-sudo pacman -S opencv python-gobject python2-gobject gtk3 dlib
-```
- - Install dlib for Python
-```
-git clone https://github.com/davisking/dlib.git
-cd dlib
-sudo python setup.py install
+sudo pacman -S opencv python-gobject python2-gobject gtk3 hdf5
 ```
