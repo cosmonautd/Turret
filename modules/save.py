@@ -15,6 +15,9 @@ from collections import deque
 # External imports
 import cv2
 
+CV_CAP_PROP_POS_FRAMES = 1
+CV_CAP_PROP_FRAME_COUNT = 7
+
 def save(img, img_time, uploadqueue=None):
     """Save images to disc or a Google Drive account.
 
@@ -61,3 +64,36 @@ def save(img, img_time, uploadqueue=None):
 
     if uploadqueue:
         uploadqueue.append(img_time) 
+
+def video(time_, fps=30):
+    """
+    """
+
+    path = "/".join(("detected", str(time_.year), str(time_.month) + ". " + time_.strftime('%B'), str(time_.day)))
+    name = ".".join(("detected", str(time_.year), str(time_.month) + ". " + time_.strftime('%B'), str(time_.day)))
+    frames = list()
+    files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and not f.endswith('.avi')]
+    files.sort()
+
+    output_path = os.path.join(path, name+'.avi')
+
+    if os.path.exists(output_path):
+        _video = cv2.VideoCapture(output_path)
+        while _video.get(CV_CAP_PROP_POS_FRAMES) < _video.get(CV_CAP_PROP_FRAME_COUNT):
+            _, frame = _video.read()
+            frames.append(frame)
+        _video.release()
+
+    for f in files:
+        f = os.path.join(path, f)
+        frame = cv2.imread(f)
+        os.remove(f)
+        h, w, d = frame.shape
+        size = (w, h)
+        frames.append(frame)
+    
+    if len(frames) > 0:
+        video_ = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'MJPG'), fps, size)
+        for frame in frames:
+            video_.write(frame)
+        video_.release()

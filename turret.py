@@ -31,6 +31,7 @@ import array
 import signal
 import locale
 import datetime
+import threading
 
 # Import external packages
 import cv2
@@ -88,6 +89,17 @@ def init_speaker():
         speaker.add_category('init', 'resources/sounds/init')
         speaker.add_category('detected', 'resources/sounds/detected')
         speaker.add_category('quit', 'resources/sounds/quit')
+
+# Convert daily detections to a video
+timer = None
+def convert_to_video():
+    today = datetime.datetime.today()
+    tomorrow = today + datetime.timedelta(days=1)
+    tomorrow.replace(hour=0, minute=0, second=1, microsecond=0)
+    save.video(today)
+    timer = threading.Timer((tomorrow-today).seconds, convert_to_video)
+    timer.setDaemon(True)
+    timer.start()
 
 # Main operation
 def loop():
@@ -268,7 +280,6 @@ def clean():
     if SPEAK: speaker.play('quit')
     global camera
     camera.release()
-    pass
 
 def sigint_handler(signum, instant):
     """
@@ -282,6 +293,9 @@ if __name__ == "__main__":
     # Activate capture of SIGINT (Ctrl-C)
     signal.signal(signal.SIGINT, sigint_handler)
 
+    # Convert detections to video every day
+    convert_to_video()
+
     # Execute GUI or CLI 
     if GUI:
 
@@ -290,7 +304,7 @@ if __name__ == "__main__":
         from gi.repository import Gtk, GdkPixbuf, GObject, GLib, Gio
 
         try:
-            GObject.threads_init()
+            # GObject.threads_init()
             g = Gui()
             Gtk.main()
         except KeyboardInterrupt:
