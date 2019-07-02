@@ -80,7 +80,10 @@ def video(time_, fps=30):
 
         output_path = os.path.join(path, name+'.avi')
 
-        video_ = cv2.VideoWriter(output_path+'.tmp.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (640, 480))
+        if int(cv2.__version__[0]) < 4:
+            video_ = cv2.VideoWriter(output_path+'.tmp.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (480, 640))
+        else:
+            video_ = cv2.VideoWriter(output_path+'.tmp.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (640, 480))
 
         if os.path.exists(output_path):
             _video = cv2.VideoCapture(output_path)
