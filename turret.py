@@ -93,6 +93,7 @@ def init_speaker():
 # Convert daily detections to a video
 timer = None
 def convert_to_video():
+    global timer
     now = datetime.datetime.now()
     if timer is None:
         next_convert_time = now
