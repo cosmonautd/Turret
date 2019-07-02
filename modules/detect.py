@@ -126,8 +126,10 @@ def motion_detection(frame, thresh=10, it=35, min_area=200, max_area=numpy.inf, 
 
         # Dilate the thresholded image to fill in holes, then find contours on thresholded image
         thresh = cv2.dilate(thresh, None, iterations=it)
-        (_, cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
-            cv2.CHAIN_APPROX_SIMPLE)
+        if int(cv2.__version__[0]) < 4:
+            _, cnts, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        else:
+            cnts, _ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         # Loop over the contours
         for c in cnts:
