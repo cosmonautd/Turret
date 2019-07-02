@@ -93,11 +93,15 @@ def init_speaker():
 # Convert daily detections to a video
 timer = None
 def convert_to_video():
-    today = datetime.datetime.today()
-    tomorrow = today + datetime.timedelta(days=1, hours=12)
-    tomorrow.replace(hour=0, minute=1, second=0, microsecond=0)
-    save.video(today)
-    timer = threading.Timer((tomorrow-today).seconds, convert_to_video)
+    now = datetime.datetime.now()
+    if timer is None:
+        next_convert_time = now
+        next_convert_time.replace(hour=23, minute=50, second=0, microsecond=0)
+    else:
+        next_convert_time = now + datetime.timedelta(hours=12)
+        next_convert_time.replace(hour=23, minute=50, second=0, microsecond=0)
+        save.video(now)
+    timer = threading.Timer((next_convert_time-now).seconds, convert_to_video)
     timer.setDaemon(True)
     timer.start()
 
@@ -129,8 +133,12 @@ def loop():
         frame, found = detect.gesture_recognition(frame)
 
     # Save detections
+    now = datetime.datetime.now()
+    timestr = '%02d/%02d/%04d %02d:%02d:%02d' % (now.day, now.month, now.year, now.hour, now.minute, now.second)
+    font = cv2.FONT_HERSHEY_DUPLEX
+    cv2.putText(frame, timestr, (10, 20), font, 0.6, (255, 255, 255), 1)
+
     if found:
-        now = datetime.datetime.now()
         if SAVE_TO_DISK: save.save(frame, now)
         if SPEAK: speaker.play("detected", use_pps=True)
 

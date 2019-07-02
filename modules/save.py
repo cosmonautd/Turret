@@ -74,12 +74,13 @@ def video(time_, fps=30):
     frames = list()
 
     if os.path.exists(path):
+
         files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and not f.endswith('.avi')]
         files.sort()
 
         output_path = os.path.join(path, name+'.avi')
 
-        video_ = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'MJPG'), fps, (480, 640))
+        video_ = cv2.VideoWriter(output_path+'.tmp.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (640, 480))
 
         if os.path.exists(output_path):
             _video = cv2.VideoCapture(output_path)
@@ -87,11 +88,15 @@ def video(time_, fps=30):
                 _, frame = _video.read()
                 video_.write(frame)
             _video.release()
+            os.remove(output_path)
 
         for f in files:
             f = os.path.join(path, f)
             frame = cv2.imread(f)
             video_.write(frame)
             # os.remove(f)
-
+        
         video_.release()
+
+        if os.path.exists(output_path+'.tmp.avi'):
+            os.rename(output_path+'.tmp.avi', output_path)
