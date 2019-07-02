@@ -8,6 +8,8 @@ import os
 import time
 import random
 
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
 # External imports
 import pygame
 
