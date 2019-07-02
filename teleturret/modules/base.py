@@ -18,21 +18,21 @@ CASCADE_UPPERBODY = cv2.CascadeClassifier("../resources/cascades/haarcascade_mcs
 
 def detect_pattern(img, cascade, min_rectangle):
     """Pattern detection function.
-    
+
         Args:
             img: a cv2 image.
             cascade: a CascadeClassifier object.
-            min_rectangle: a two element tuple containing width and 
-                           height of the smaller search window; small 
-                           values rise the range of vision of our 
+            min_rectangle: a two element tuple containing width and
+                           height of the smaller search window; small
+                           values rise the range of vision of our
                            turret, but processing may become slower.
-        
+
         Returns:
-            Coordinates of the rectangle that contains the pattern 
+            Coordinates of the rectangle that contains the pattern
             described by the classifier.
-        
+
         Raises:
-        
+
     """
 
     rects = cascade.detectMultiScale(img, 1.2, 3, 1, min_rectangle)
@@ -44,25 +44,25 @@ def detect_pattern(img, cascade, min_rectangle):
 
 def box(coords, img, color=(0,255,0)):
     """Draw a rectangle in an image.
-    
+
         Args:
-            coords: a list of lists. Each sublist has four elements, 
+            coords: a list of lists. Each sublist has four elements,
                     respectively, top-left and bottom-right, x and y.
-                    examples: [[32, 56, 177, 214]] 
+                    examples: [[32, 56, 177, 214]]
                               [[32, 56, 177, 214], [44, 53, 194, 217]]
             img: a cv2 image.
-            color: a tuple of three elements, the BGR representation 
+            color: a tuple of three elements, the BGR representation
                    of a color for the rectangle.
                    Default is (127, 255, 0).
-        
+
         Returns:
-            The input image, with rectangles placed on the specified 
+            The input image, with rectangles placed on the specified
             coordinates.
-        
+
         Raises:
-    
+
     """
-    
+
     for x1, y1, x2, y2 in coords:
         cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
     return img
@@ -129,13 +129,14 @@ class Base:
         for (_, _, filenames) in os.walk(todaypath):
             detections.extend(filenames)
             break
+        detections.sort(reverse=True)
+        if len(detections) > 0 and detections[0].endswith('.avi'): del detections[0]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
             answer.append({'type': 'text', 'text': 'I think nobody went to the lab today'})
         else:
             # If there was a detection today, get the last frame
-            detections.sort()
-            lastframepath = os.path.join(todaypath, detections[-1])
+            lastframepath = os.path.join(todaypath, detections[0])
             lastframe = cv2.imread(lastframepath)
             # Check the state of lights
             light = numpy.mean(im2float(lastframe).flatten())
@@ -145,7 +146,7 @@ class Base:
             # Send last detected frame
             answer.append({'type': 'image', 'url': lastframepath})
         return answer
-    
+
     def who(self, message, message_data, answer):
         """
         Post process who intent
@@ -160,6 +161,8 @@ class Base:
         for (_, _, filenames) in os.walk(todaypath):
             detections.extend(filenames)
             break
+        detections.sort(reverse=True)
+        if len(detections) > 0 and detections[0].endswith('.avi'): del detections[0]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
             answer.append({'type': 'text', 'text': 'I think nobody went to the lab today'})
@@ -167,7 +170,6 @@ class Base:
             # Load dlib face detector
             detector = dlib.get_frontal_face_detector()
             # If there was a detection today, get the last frame
-            detections.sort(reverse=True)
             lastframepath = os.path.join(todaypath, detections[0])
             lastframe = cv2.imread(lastframepath)
             # Check the state of lights
@@ -193,7 +195,7 @@ class Base:
                         break
             else:
                 answer.append({'type': 'text', 'text': 'I think the lab is empty'})
-            
+
         return answer
 
     def who2(self, message, message_data, answer):
@@ -210,12 +212,13 @@ class Base:
         for (_, _, filenames) in os.walk(todaypath):
             detections.extend(filenames)
             break
+        detections.sort(reverse=True)
+        if len(detections) > 0 and detections[0].endswith('.avi'): del detections[0]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
             answer.append({'type': 'text', 'text': 'I think nobody went to the lab today'})
         else:
             # If there was a detection today, get the last frame
-            detections.sort(reverse=True)
             lastframepath = os.path.join(todaypath, detections[0])
             lastframe = cv2.imread(lastframepath)
             # Check the state of lights
@@ -239,7 +242,7 @@ class Base:
                         break
             else:
                 answer.append({'type': 'text', 'text': 'I think the lab is empty'})
-            
+
         return answer
 
 link = Base()

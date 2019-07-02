@@ -70,3 +70,4 @@ keys.json
 botkit
 .found.jpg
 config.json
+*-env

@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!.teleturret-env/bin/python3
 # coding: utf-8
 
 """ Turret telegram bot

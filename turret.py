@@ -94,8 +94,8 @@ def init_speaker():
 timer = None
 def convert_to_video():
     today = datetime.datetime.today()
-    tomorrow = today + datetime.timedelta(days=1)
-    tomorrow.replace(hour=0, minute=0, second=1, microsecond=0)
+    tomorrow = today + datetime.timedelta(days=1, hours=12)
+    tomorrow.replace(hour=0, minute=1, second=0, microsecond=0)
     save.video(today)
     timer = threading.Timer((tomorrow-today).seconds, convert_to_video)
     timer.setDaemon(True)
@@ -133,7 +133,7 @@ def loop():
         now = datetime.datetime.now()
         if SAVE_TO_DISK: save.save(frame, now)
         if SPEAK: speaker.play("detected", use_pps=True)
-    
+
     return frame
 
 
@@ -149,11 +149,12 @@ class Cli:
         init_camera()
         init_speaker()
         if SPEAK: speaker.play("init")
-    
+
     def start(self):
         """
         Run loop
         """
+        print("Turret is on!")
         while True:
             loop()
 
@@ -296,7 +297,7 @@ if __name__ == "__main__":
     # Convert detections to video every day
     convert_to_video()
 
-    # Execute GUI or CLI 
+    # Execute GUI or CLI
     if GUI:
 
         import gi
@@ -309,7 +310,7 @@ if __name__ == "__main__":
             Gtk.main()
         except KeyboardInterrupt:
             pass
-    
+
     else:
 
         cli = Cli()
