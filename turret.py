@@ -144,8 +144,9 @@ def loop():
     # Save detections
     now = datetime.datetime.now()
     timestr = '%02d/%02d/%04d %02d:%02d:%02d' % (now.day, now.month, now.year, now.hour, now.minute, now.second)
-    font = cv2.FONT_HERSHEY_DUPLEX
-    cv2.putText(frame, timestr, (10, 20), font, 0.6, (255, 255, 255), 1)
+    font = cv2.FONT_HERSHEY_PLAIN
+    color= (255, 255, 255) if numpy.mean(frame[0:30,0:120])/255 < 0.6 else (0, 0, 0)
+    cv2.putText(frame, timestr, (5, 20), font, 1.2, color, 0, 4)
 
     if found:
         if SAVE_TO_DISK: save.save(frame, now)
