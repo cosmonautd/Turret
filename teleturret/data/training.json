@@ -2,6 +2,12 @@
     "samples": [
         {
             "cluster": "base",
+            "intent": "none",
+            "text": ".",
+            "entities": []
+        },
+        {
+            "cluster": "base",
             "intent": "greetings",
             "text": "Hi",
             "entities": []

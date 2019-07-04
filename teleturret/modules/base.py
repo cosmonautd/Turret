@@ -103,9 +103,17 @@ class Base:
         Initialize answer processor and set callbacks for intents
         """
         self.answer_processor = botkit.answer.AnswerProcessor('base')
+        self.answer_processor.set_callback('none', self.none)
         self.answer_processor.set_callback('greetings', self.greetings)
         self.answer_processor.set_callback('someone', self.someone)
         self.answer_processor.set_callback('who', self.who2)
+    
+    def none(self, message, message_data, answer):
+        """
+        Postprocess no intent
+        Return default response
+        """
+        return answer
 
     def greetings(self, message, message_data, answer):
         """
@@ -133,7 +141,7 @@ class Base:
         detections = [d for d in detections if not d.endswith('.avi')]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
-            answer.append({'type': 'text', 'text': 'I think nobody went to the lab today'})
+            answer.append({'type': 'text', 'text': 'Nobody here today.'})
         else:
             # If there was a detection today, get the last frame
             lastframepath = os.path.join(todaypath, detections[0])
@@ -141,8 +149,8 @@ class Base:
             # Check the state of lights
             light = numpy.mean(im2float(lastframe).flatten())
             # Infer if there is someone in the lab
-            if light > 0.3: answer.append({'type': 'text', 'text': 'Someone is in the lab!'})
-            else: answer.append({'type': 'text', 'text': 'I think the lab is empty'})
+            if light > 0.3: answer.append({'type': 'text', 'text': 'Someone is here!'})
+            else: answer.append({'type': 'text', 'text': 'Nobody here.'})
             # Send last detected frame
             answer.append({'type': 'image', 'url': lastframepath})
         return answer
@@ -165,7 +173,7 @@ class Base:
         detections = [d for d in detections if not d.endswith('.avi')]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
-            answer.append({'type': 'text', 'text': 'I think nobody went to the lab today'})
+            answer.append({'type': 'text', 'text': 'Nobody here today.'})
         else:
             # Load dlib face detector
             detector = dlib.get_frontal_face_detector()
@@ -176,7 +184,7 @@ class Base:
             light = numpy.mean(im2float(lastframe).flatten())
             # Infer if there is someone in the lab
             if light > 0.3:
-                answer.append({'type': 'text', 'text': 'Someone is in the lab!'})
+                answer.append({'type': 'text', 'text': 'Someone is here!'})
                 # Check frames from recent to older and try to find a person, skipping 10 by 10
                 for i in range(0, len(detections), 10):
                     detection = detections[i]
@@ -190,11 +198,11 @@ class Base:
                         for f in faces:
                             cv2.rectangle(frame, (f.left(), f.top()), (f.right(), f.bottom()), (0,0,255), 2)
                         cv2.imwrite('.found.jpg', frame)
-                        answer.append({'type': 'text', 'text': 'Just found this test subject'})
+                        answer.append({'type': 'text', 'text': 'Target acquired.'})
                         answer.append({'type': 'image', 'url': '.found.jpg'})
                         break
             else:
-                answer.append({'type': 'text', 'text': 'I think the lab is empty'})
+                answer.append({'type': 'text', 'text': 'Nobody here.'})
 
         return answer
 
@@ -216,7 +224,7 @@ class Base:
         detections = [d for d in detections if not d.endswith('.avi')]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
-            answer.append({'type': 'text', 'text': 'I think nobody went to the lab today'})
+            answer.append({'type': 'text', 'text': 'Nobody here today.'})
         else:
             # If there was a detection today, get the last frame
             lastframepath = os.path.join(todaypath, detections[0])
@@ -225,23 +233,23 @@ class Base:
             light = numpy.mean(im2float(lastframe).flatten())
             # Infer if there is someone in the lab
             if light > 0.3:
-                answer.append({'type': 'text', 'text': 'Someone is in the lab!'})
+                answer.append({'type': 'text', 'text': 'Someone is here!'})
                 # Check frames from recent to older and try to find a person, skipping 10 by 10
                 for i in range(0, len(detections), 10):
                     detection = detections[i]
                     # Get frame
                     framepath = os.path.join(todaypath, detection)
                     frame = cv2.imread(framepath)
-                    # Try face detection
+                    # Try upperbody detection
+                    # If upperbody was detected, draw a rectangle over it and save, then answer!
                     frame, found = single_cascade(frame, drawboxes=True)
-                    # If a face was detected, draw a rectangle over it and save, then answer!
                     if found:
                         cv2.imwrite('.found.jpg', frame)
-                        answer.append({'type': 'text', 'text': 'Just found this test subject'})
+                        answer.append({'type': 'text', 'text': 'Target acquired.'})
                         answer.append({'type': 'image', 'url': '.found.jpg'})
                         break
             else:
-                answer.append({'type': 'text', 'text': 'I think the lab is empty'})
+                answer.append({'type': 'text', 'text': 'Nobody here.'})
 
         return answer
 

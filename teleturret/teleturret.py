@@ -5,6 +5,7 @@
 """
 
 # Standard imports
+import sys
 import json
 import logging
 import requests
@@ -19,6 +20,10 @@ import botkit.nlu
 # Teleturret imports
 from modules import base
 
+def log(m):
+    print(m)
+    sys.stdout.flush()
+
 # Initialize botkit, disable entity recognition, activate base module
 turretbot = botkit.nlu.NLU(disable=['entities'])
 online_modules = [base]
@@ -28,6 +33,7 @@ link = dict()
 for m in online_modules:
     for i in m.link.answer_processor.intents:
         link[i] = m.link.answer_processor
+        log("Loaded intent:" + i)
 
 # Load Telegram key and allowed list
 with open('config.json') as config_file:
@@ -105,6 +111,9 @@ def teleturretbot(update, type_, bot):
     message = build_message(update, type_)
     message_data = turretbot.compute(message['text'])
     message_data['answer'] = link[message_data['intent']].compute(message, message_data)
+    log('----------------------------------------')
+    log('*--------------------------------------*')
+    log(json.dumps(message_data, indent=4, sort_keys=True, ensure_ascii=False))
     generate_answer(bot, message_data['answer'], update)
 
 def start(bot, update):

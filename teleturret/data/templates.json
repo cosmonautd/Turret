@@ -1,16 +1,33 @@
 {
+    "none": [
+        "Command not recognized. I don't blame you.",
+        "Command not recognized. I don't hate you.",
+        "Command not recognized. No hard feelings...",
+        "Command not recognized. These things happen.",
+        "Command not recognized. That was nobody's fault.",
+        "I don't understand!",
+        "Something's wrong...",
+        "Excuse me?",
+        "Malfunctioning...",
+        "Critical Error! Please, rephrase your request. ",
+        "Illegal operation. I don't understand!"
+    ],
     "greetings": [
-        "Hi, <NAME> :)",
-        "Hello, <NAME> :)"
+        "Hello, friend.",
+        "Hellooo."
     ],
     "someone": [
-        "Let me check...",
-        "Wait a second, verifying...",
+        "Activated!",
+        "Search mode activated!",
+        "Searching!",
+        "Sentry mode activated.",
         "Looking for targets..."
     ],
     "who": [
-        "Let me check...",
-        "Wait a second, verifying...",
+        "Activated!",
+        "Search mode activated!",
+        "Searching!",
+        "Sentry mode activated.",
         "Looking for targets..."
     ]
 }
