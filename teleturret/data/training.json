@@ -1,27 +1,57 @@
 {
     "samples": [
+
         {
             "cluster": "base",
             "intent": "none",
             "text": ".",
             "entities": []
         },
+
         {
             "cluster": "base",
             "intent": "greetings",
             "text": "Hi",
             "entities": []
         },
+
         {
             "cluster": "base",
             "intent": "someone",
             "text": "Is someone there?",
             "entities": []
         },
+
         {
             "cluster": "base",
             "intent": "who",
             "text": "Who is there?",
+            "entities": []
+        },
+
+        {
+            "cluster": "base",
+            "intent": "activate",
+            "text": "Activate",
+            "entities": []
+        },
+        {
+            "cluster": "base",
+            "intent": "activate",
+            "text": "Enable",
+            "entities": []
+        },
+        
+        {
+            "cluster": "base",
+            "intent": "deactivate",
+            "text": "Deactivate",
+            "entities": []
+        },
+        {
+            "cluster": "base",
+            "intent": "deactivate",
+            "text": "Disable",
             "entities": []
         }
     ]

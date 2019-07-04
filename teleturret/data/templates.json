@@ -17,17 +17,21 @@
         "Hellooo."
     ],
     "someone": [
-        "Activated!",
         "Search mode activated!",
         "Searching!",
         "Sentry mode activated.",
         "Looking for targets..."
     ],
     "who": [
-        "Activated!",
         "Search mode activated!",
         "Searching!",
         "Sentry mode activated.",
         "Looking for targets..."
+    ],
+    "activate": [
+        "Hello, <NAME>"
+    ],
+    "deactivate": [
+        "Hello, <NAME>"
     ]
 }

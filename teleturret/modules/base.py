@@ -3,6 +3,7 @@
 
 # Standard imports
 import os
+import sys
 import datetime
 
 # External imports
@@ -11,10 +12,15 @@ import dlib
 import numpy
 
 # Project imports
+import botkit.nlu
 import botkit.answer
 
 # Load Cascade Classifiers for upperbody
 CASCADE_UPPERBODY = cv2.CascadeClassifier("../resources/cascades/haarcascade_mcs_upperbody.xml")
+
+def log(m):
+    print(m)
+    sys.stdout.flush()
 
 def detect_pattern(img, cascade, min_rectangle):
     """Pattern detection function.
@@ -107,6 +113,8 @@ class Base:
         self.answer_processor.set_callback('greetings', self.greetings)
         self.answer_processor.set_callback('someone', self.someone)
         self.answer_processor.set_callback('who', self.who2)
+        self.answer_processor.set_callback('activate', self.activate)
+        self.answer_processor.set_callback('deactivate', self.deactivate)
     
     def none(self, message, message_data, answer):
         """
@@ -250,6 +258,44 @@ class Base:
                         break
             else:
                 answer.append({'type': 'text', 'text': 'Nobody here.'})
+
+        return answer
+    
+    def activate(self, message, message_data, answer):
+        """
+        Post process activate intent
+        Infer what needs to be activated
+        """
+        feature = ''
+        if 'text_en' in message_data and 'notification' in message_data['text_en'] \
+            or 'text' in message_data and 'notification' in message_data['text']:
+            feature = 'notifications'
+
+        if feature != '':
+            context = botkit.nlu.Context()
+            context.write(message['username'], feature, True)
+            answer.append({'type': 'text', 'text': '%s activated' % (feature.capitalize())})
+        else:
+            answer.append({'type': 'text', 'text': 'Unknown error...'})
+
+        return answer
+    
+    def deactivate(self, message, message_data, answer):
+        """
+        Post process deactivate intent
+        Infer what needs to be deactivated
+        """
+        feature = ''
+        if 'text_en' in message_data and 'notification' in message_data['text_en'] \
+            or 'text' in message_data and 'notification' in message_data['text']:
+            feature = 'notifications'
+
+        if feature != '':
+            context = botkit.nlu.Context()
+            context.write(message['username'], feature, False)
+            answer.append({'type': 'text', 'text': '%s deactivated' % (feature.capitalize())})
+        else:
+            answer.append({'type': 'text', 'text': 'Unknown error...'})
 
         return answer
 

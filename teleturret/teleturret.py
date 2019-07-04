@@ -5,12 +5,17 @@
 """
 
 # Standard imports
+import os
 import sys
 import json
 import logging
 import requests
+import datetime
+import threading
 
 # External imports
+import cv2
+import numpy
 import telegram
 import telegram.ext
 
@@ -46,7 +51,8 @@ with open('config.json') as config_file:
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 # Set up Telegram updated and dispatcher
-updater = telegram.ext.Updater(token=TELEGRAM_BOT_KEY)
+bot = telegram.Bot(TELEGRAM_BOT_KEY)
+updater = telegram.ext.Updater(bot=bot)
 dispatcher = updater.dispatcher
 
 def allowed(update):
@@ -120,6 +126,7 @@ def start(bot, update):
     """
     Process /start commmand
     """
+    BOT = bot
     if allowed(update):
         bot.send_message(chat_id=update.message.chat_id, text="I see you!")
 
@@ -127,6 +134,9 @@ def answer_text(bot, update):
     """
     Process arbitrary text
     """
+    context = botkit.nlu.Context()
+    if not context.has_user('@' + update.effective_message.from_user.username):
+        context.write('@' + update.effective_message.from_user.username, 'chat_id', update.effective_message.chat.id)
     if allowed(update):
         teleturretbot(update, 'text', bot)
 
@@ -137,6 +147,61 @@ dispatcher.add_handler(start_handler)
 # Set up handler for arbitrary text
 text_handler = telegram.ext.MessageHandler(telegram.ext.Filters.text, answer_text)
 dispatcher.add_handler(text_handler)
+
+def im2float(im):
+    """
+    Convert OpenCV image type to numpy.float
+    """
+    info = numpy.iinfo(im.dtype)
+    return im.astype(numpy.float) / info.max
+
+# Set up notifications
+def notifications():
+    """
+    Dispatch notifications
+    """
+    # Get path to todays' detections
+    now = datetime.datetime.now()
+    todaypath = '/'.join(('..', 'detected', str(now.year), str(now.month) + '. ' + now.strftime('%B'), str(now.day)))
+    # Get paths for all frames detected today
+    detections = list()
+    for (_, _, filenames) in os.walk(todaypath):
+        detections.extend(filenames)
+        break
+    detections.sort(reverse=True)
+    detections = [d for d in detections if not d.endswith('.avi')]
+    # If no detection was made today
+    if len(detections) > 0:
+        # If there was a detection today, get the last frame
+        lastframepath = os.path.join(todaypath, detections[0])
+        lastframe = cv2.imread(lastframepath)
+        # Check the state of lights
+        light_lvl = numpy.mean(im2float(lastframe).flatten())
+        # Infer if there is someone in the lab
+        light = True if light_lvl > 0.3 else False
+    
+        context = botkit.nlu.Context()
+        if not context.has_key('@teleturretbot', 'light'):
+            log('New light')
+            context.write('@teleturretbot', 'light', light)
+
+        if light != context.read('@teleturretbot', 'light'):
+            context.write('@teleturretbot', 'light', light)
+            nt_message = 'Someone just %s the lab!' % ('opened' if light else 'close')
+            for username in context.__load__().keys():
+                if context.read(username, 'notifications'):
+                    bot.send_message(chat_id=context.read(username, 'chat_id'), text=nt_message)
+
+nt_timer = None
+def notifications_loop():
+    global nt_timer
+    now = datetime.datetime.now()
+    next_nt_time = now + datetime.timedelta(seconds=5)
+    notifications()
+    nt_timer = threading.Timer((next_nt_time-now).seconds, notifications_loop)
+    nt_timer.setDaemon(True)
+    nt_timer.start()
+notifications_loop()
 
 # I see you
 print("Turret Bot ready!")

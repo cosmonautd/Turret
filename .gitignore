@@ -71,3 +71,4 @@ botkit
 .found.jpg
 config.json
 *-env
+context.json
