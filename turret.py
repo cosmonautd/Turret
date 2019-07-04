@@ -76,6 +76,12 @@ def init_camera():
     camera = cv2.VideoCapture(-1)
     camera.set(CV_CAP_PROP_FRAME_WIDTH, WIDTH)
     camera.set(CV_CAP_PROP_FRAME_HEIGHT, HEIGHT)
+    # Set camera settings
+    # sudo apt-get install v4l-utils
+    # v4l2-ctl --list-devices
+    # v4l2-ctl -d /dev/video0 --list-ctrls
+    # v4l2-ctl --get-ctrl=white_balance_temperature
+    # v4l2-ctl --set-ctrl=gain=00
 
 # Configure speaker
 speaker = None
