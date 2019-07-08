@@ -187,7 +187,7 @@ def notifications():
 
         if light != context.read('@teleturretbot', 'light'):
             context.write('@teleturretbot', 'light', light)
-            nt_message = 'Someone just %s the lab!' % ('opened' if light else 'close')
+            nt_message = 'Someone just %s the lab!' % ('opened' if light else 'closed')
             for username in context.__load__().keys():
                 if context.read(username, 'notifications'):
                     bot.send_message(chat_id=context.read(username, 'chat_id'), text=nt_message)
