@@ -27,6 +27,7 @@ parser.add_argument("-m", help="The detection mode")
 args = parser.parse_args()
 
 # Import standard packages
+import os
 import array
 import signal
 import locale
@@ -84,6 +85,8 @@ def init_camera():
     # v4l2-ctl --set-ctrl=exposure=1000
     # v4l2-ctl --get-ctrl=gain_automatic
     # v4l2-ctl --get-ctrl=exposure
+    os.system('v4l2-ctl --set-ctrl=gain_automatic=0')
+    os.system('v4l2-ctl --set-ctrl=exposure=1000')
 
 # Configure speaker
 speaker = None
