@@ -40,25 +40,19 @@ for m in online_modules:
         link[i] = m.link.answer_processor
         log("Loaded intent:" + i)
 
-# Load Telegram key and allowed list
-with open('config.json') as config_file:
-    config = json.load(config_file)
-    TELEGRAM_BOT_KEY = config['keys']['telegram']['teleturretbot']
-    ALLOWED = list()
-    if 'allowed' in config: ALLOWED = config['allowed']
-
-# Set up logging
-logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-# Set up Telegram updated and dispatcher
-bot = telegram.Bot(TELEGRAM_BOT_KEY)
-updater = telegram.ext.Updater(bot=bot)
-dispatcher = updater.dispatcher
+def loadconfig():
+    """
+    """
+    with open('config.json') as config_file:
+        config = json.load(config_file)
+    return config
 
 def allowed(update):
     """
     Return True if username is in list ALLOWED
     """
+    config = loadconfig()
+    if 'allowed' in config: ALLOWED = config['allowed']
     if update.message is not None:
         return '@' + update.effective_message.from_user.username in ALLOWED \
                 and ( update.message.chat.type == 'private' \
@@ -140,14 +134,6 @@ def answer_text(bot, update):
     if allowed(update):
         teleturretbot(update, 'text', bot)
 
-# Set up handler for /start command
-start_handler = telegram.ext.CommandHandler('start', start)
-dispatcher.add_handler(start_handler)
-
-# Set up handler for arbitrary text
-text_handler = telegram.ext.MessageHandler(telegram.ext.Filters.text, answer_text)
-dispatcher.add_handler(text_handler)
-
 def im2float(im):
     """
     Convert OpenCV image type to numpy.float
@@ -202,6 +188,31 @@ def notifications_loop():
     nt_timer.setDaemon(True)
     nt_timer.start()
 notifications_loop()
+
+# Load config file
+config = loadconfig()
+
+# Set Telegram API key
+TELEGRAM_BOT_KEY = config['keys']['telegram']['teleturretbot']
+# Set list of allowed users
+ALLOWED = list()
+if 'allowed' in config: ALLOWED = config['allowed']
+
+# Set up Telegram updated and dispatcher
+bot = telegram.Bot(TELEGRAM_BOT_KEY)
+updater = telegram.ext.Updater(bot=bot)
+dispatcher = updater.dispatcher
+
+# Set up logging
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# Set up handler for /start command
+start_handler = telegram.ext.CommandHandler('start', start)
+dispatcher.add_handler(start_handler)
+
+# Set up handler for arbitrary text
+text_handler = telegram.ext.MessageHandler(telegram.ext.Filters.text, answer_text)
+dispatcher.add_handler(text_handler)
 
 # I see you
 print("Turret Bot ready!")
