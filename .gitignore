@@ -68,7 +68,7 @@ faces/
 keys.json
 *.dat
 botkit
-.found.jpg
+*.found*
 config.json
 *-env
 context.json

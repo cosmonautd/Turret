@@ -10,6 +10,8 @@ import datetime
 import cv2
 import dlib
 import numpy
+import skimage.exposure
+import sklearn.cluster
 
 # Project imports
 import botkit.nlu
@@ -112,7 +114,7 @@ class Base:
         self.answer_processor.set_callback('none', self.none)
         self.answer_processor.set_callback('greetings', self.greetings)
         self.answer_processor.set_callback('someone', self.someone)
-        self.answer_processor.set_callback('who', self.who2)
+        self.answer_processor.set_callback('who', self.who_all)
         self.answer_processor.set_callback('activate', self.activate)
         self.answer_processor.set_callback('deactivate', self.deactivate)
     
@@ -163,7 +165,7 @@ class Base:
             answer.append({'type': 'image', 'url': lastframepath})
         return answer
 
-    def who(self, message, message_data, answer):
+    def who_face(self, message, message_data, answer):
         """
         Post process who intent
         Infer if there is someone in the room
@@ -213,8 +215,8 @@ class Base:
                 answer.append({'type': 'text', 'text': 'Nobody here.'})
 
         return answer
-
-    def who2(self, message, message_data, answer):
+    
+    def who_upperbody(self, message, message_data, answer):
         """
         Post process who intent
         Infer if there is someone in the room
@@ -256,6 +258,85 @@ class Base:
                         answer.append({'type': 'text', 'text': 'Target acquired.'})
                         answer.append({'type': 'image', 'url': '.found.jpg'})
                         break
+            else:
+                answer.append({'type': 'text', 'text': 'Nobody here.'})
+
+        return answer
+
+    def who_all(self, message, message_data, answer):
+        """
+        Post process who intent
+        Infer if there is someone in the room
+        If positive, get the last frame in which a face is detected and return
+        """
+        # Get path to todays' detections
+        now = datetime.datetime.now()
+        todaypath = '/'.join(('..', 'detected', str(now.year), str(now.month) + '. ' + now.strftime('%B'), str(now.day)))
+        # Get paths for all frames detected today
+        detections = list()
+        for (_, _, filenames) in os.walk(todaypath):
+            detections.extend(filenames)
+            break
+        detections.sort(reverse=True)
+        detections = [d for d in detections if not d.endswith('.avi')]
+        # If no detection was made today, infer that nobody went to the lab
+        if len(detections) == 0:
+            answer.append({'type': 'text', 'text': 'Nobody here today.'})
+        else:
+            # If there was a detection today, get the last frame
+            lastframepath = os.path.join(todaypath, detections[0])
+            lastframe = cv2.imread(lastframepath)
+            # Check the state of lights
+            light = numpy.mean(im2float(lastframe).flatten())
+            # Infer if there is someone in the lab
+            if light > 0.3:
+                people = list()
+                answer.append({'type': 'text', 'text': 'Someone is here!'})
+                # Check frames from recent to older and try to find a person, skipping 5 by 5
+                for i in range(0, len(detections), 10):
+                    detection = detections[i]
+                    # Get frame
+                    framepath = os.path.join(todaypath, detection)
+                    frame = cv2.imread(framepath)
+                    # Try upperbody detection
+                    # If upperbody was detected, draw a rectangle over it and save, then answer!
+                    frame, found, rects = single_cascade(frame, drawboxes=False, return_objects=True)
+                    if found: people.append((frame, rects))
+                    if len(people) > 15: break
+                # Clustering
+                features = list()
+                for frame, rects in people:
+                    x, y, w, h = rects[0]
+                    crop = frame[y:h, x:w].astype(numpy.float32)
+                    crop_ch0 = crop[:,:,0]
+                    crop_ch1 = crop[:,:,1]
+                    crop_ch2 = crop[:,:,2]
+                    hist0 = skimage.exposure.histogram(crop_ch0, nbins=12, normalize=True)[0]
+                    hist1 = skimage.exposure.histogram(crop_ch1, nbins=12, normalize=True)[0]
+                    hist2 = skimage.exposure.histogram(crop_ch2, nbins=12, normalize=True)[0]
+                    log(hist0.shape)
+                    log(hist1.shape)
+                    log(hist2.shape)
+                    ft = numpy.concatenate((hist0, hist1, hist2), axis=None)
+                    features.append(ft)
+                features = numpy.array(features)
+                log(features.shape)
+                clustering = sklearn.cluster.AffinityPropagation()
+                clustering.fit(features)
+                labels = clustering.labels_
+                n_labels = len(numpy.unique(labels))
+                # Selecting
+                selected_labels = list()
+                selected_frames = list()
+                for i, p in enumerate(people):
+                    if labels[i] not in selected_labels:
+                        selected_frames.append(people[i][0])
+                        selected_labels.append(labels[i])
+                answer.append({'type': 'text', 'text': 'Targets acquired.'})
+                for i, f in enumerate(selected_frames):
+                    cv2.imwrite('.found-%02d.jpg' % (i), f)
+                    answer.append({'type': 'image', 'url': '.found-%02d.jpg' % (i)})
+                answer.append({'type': 'text', 'text': 'This was a test using affinity propagation clustering.'})
             else:
                 answer.append({'type': 'text', 'text': 'Nobody here.'})
 
