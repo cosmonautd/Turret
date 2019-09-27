@@ -9,6 +9,7 @@ import datetime
 # External imports
 import cv2
 import dlib
+import scipy
 import numpy
 import skimage.exposure
 import sklearn.cluster
@@ -116,7 +117,7 @@ class Base:
         self.answer_processor.set_callback('none', self.none)
         self.answer_processor.set_callback('greetings', self.greetings)
         self.answer_processor.set_callback('someone', self.someone)
-        self.answer_processor.set_callback('who', self.who_all)
+        self.answer_processor.set_callback('who', self.who_activity_graph)
         self.answer_processor.set_callback('activate', self.activate)
         self.answer_processor.set_callback('deactivate', self.deactivate)
         self.answer_processor.set_callback('activity_graph', self.activity_graph)
@@ -345,6 +346,68 @@ class Base:
 
         return answer
     
+    def who_activity_graph(self, message, message_data, answer):
+        """
+        Post process who intent
+        Infer if there is someone in the room
+        If positive, return last five events
+        """
+        # Get path to todays' detections
+        now = datetime.datetime.now()
+        todaypath = '/'.join(('..', 'detected', str(now.year), str(now.month) + '. ' + now.strftime('%B'), str(now.day)))
+        # Get paths for all frames detected today
+        detections = list()
+        for (_, _, filenames) in os.walk(todaypath):
+            detections.extend(filenames)
+            break
+        detections.sort(reverse=True)
+        detections = [d for d in detections if not d.endswith('.avi')]
+        # If no detection was made today, infer that nobody went to the lab
+        if len(detections) == 0:
+            answer.append({'type': 'text', 'text': 'Nobody was here today.'})
+        else:
+            message = ''
+            counts = numpy.zeros(24*60*60)
+            # Check frames from recent to older and accumulate counts
+            for i in range(0, len(detections)):
+                t = detections[i]
+                h = int(t.split()[1].split('h')[0])
+                m = int(t.split()[1].split('h')[1].split('m')[0])
+                s = int(t.split()[1].split('h')[1].split('m')[1].split('.')[0])
+                counts[3600*h + 60*m + s] += 1
+            xaxis = numpy.arange(0, len(counts))
+            # Generate graph
+            fig, ax = plt.subplots()
+            # Identify peaks
+            peaks, _ = scipy.signal.find_peaks(counts, height=8, distance=6)
+            ax.plot(xaxis, counts)
+            ax.plot(peaks, counts[peaks], "x")
+            ax.set(xlabel='Time', ylabel='Detections', title='Activity Graph')
+            formatter = matplotlib.ticker.FuncFormatter(lambda s, x: '%02d:%02d' % (s//3600,(s%3600)//60))
+            ax.xaxis.set_major_formatter(formatter)
+            fig.savefig(".activity.png", dpi=300, bbox_inches='tight')
+            if len(peaks) > 0:
+                # Iterate over the peaks
+                answer.append({'type': 'text', 'text': 'Targets acquired.'})
+                selected_frames = list()
+                for peak in peaks[::-1][:5]:
+                    t = '%02dh%02dm%02d' % (peak//3600,(peak%3600)//60, peak%60)
+                    for i in range(0, len(detections)):
+                        if detections[i].split()[1].startswith(t):
+                            # Selecting
+                            j = i + 6
+                            framepath = os.path.join(todaypath, detections[j])
+                            frame = cv2.imread(framepath)
+                            selected_frames.append(frame)
+                            break
+                for i, f in enumerate(selected_frames):
+                    cv2.imwrite('.found-%02d.jpg' % (i), f)
+                    answer.append({'type': 'image', 'url': '.found-%02d.jpg' % (i)})
+            else:
+                answer.append({'type': 'text', 'text': 'Oops, there was no significant activity today.'})
+
+        return answer
+    
     def activate(self, message, message_data, answer):
         """
         Post process activate intent
@@ -398,7 +461,6 @@ class Base:
             break
         detections.sort(reverse=True)
         detections = [d for d in detections if not d.endswith('.avi')]
-        start_time = detections[-1]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
             answer.append({'type': 'text', 'text': 'Nobody was here today.'})
@@ -418,12 +480,12 @@ class Base:
             # Generate graph
             fig, ax = plt.subplots()
             ax.plot(xaxis, counts)
-            ax.set(xlabel='Time (s)', ylabel='Detections', title='Activity Graph')
+            ax.set(xlabel='Time', ylabel='Detections', title='Activity Graph')
             formatter = matplotlib.ticker.FuncFormatter(lambda s, x: '%02d:%02d' % (s//3600,(s%3600)//60))
             ax.xaxis.set_major_formatter(formatter)
             fig.savefig(".activity.png", dpi=300, bbox_inches='tight')
             # Answer with graph
-            answer.append({'type': 'text', 'text': 'This was the activity today'})
+            answer.append({'type': 'text', 'text': 'Sending you today\'s activity graph...'})
             answer.append({'type': 'image', 'url': '.activity.png'})
 
         return answer
