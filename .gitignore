@@ -72,3 +72,4 @@ botkit
 config.json
 *-env
 context.json
+.activity.png

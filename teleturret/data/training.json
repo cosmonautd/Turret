@@ -53,6 +53,12 @@
             "intent": "deactivate",
             "text": "Disable",
             "entities": []
+        },
+        {
+            "cluster": "base",
+            "intent": "activity_graph",
+            "text": "Activity",
+            "entities": []
         }
     ]
 }

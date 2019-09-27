@@ -12,6 +12,8 @@ import dlib
 import numpy
 import skimage.exposure
 import sklearn.cluster
+import matplotlib
+import matplotlib.pyplot as plt
 
 # Project imports
 import botkit.nlu
@@ -117,6 +119,7 @@ class Base:
         self.answer_processor.set_callback('who', self.who_all)
         self.answer_processor.set_callback('activate', self.activate)
         self.answer_processor.set_callback('deactivate', self.deactivate)
+        self.answer_processor.set_callback('activity_graph', self.activity_graph)
     
     def none(self, message, message_data, answer):
         """
@@ -151,7 +154,7 @@ class Base:
         detections = [d for d in detections if not d.endswith('.avi')]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
-            answer.append({'type': 'text', 'text': 'Nobody here today.'})
+            answer.append({'type': 'text', 'text': 'Nobody was here today.'})
         else:
             # If there was a detection today, get the last frame
             lastframepath = os.path.join(todaypath, detections[0])
@@ -183,7 +186,7 @@ class Base:
         detections = [d for d in detections if not d.endswith('.avi')]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
-            answer.append({'type': 'text', 'text': 'Nobody here today.'})
+            answer.append({'type': 'text', 'text': 'Nobody was here today.'})
         else:
             # Load dlib face detector
             detector = dlib.get_frontal_face_detector()
@@ -234,7 +237,7 @@ class Base:
         detections = [d for d in detections if not d.endswith('.avi')]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
-            answer.append({'type': 'text', 'text': 'Nobody here today.'})
+            answer.append({'type': 'text', 'text': 'Nobody was here today.'})
         else:
             # If there was a detection today, get the last frame
             lastframepath = os.path.join(todaypath, detections[0])
@@ -281,7 +284,7 @@ class Base:
         detections = [d for d in detections if not d.endswith('.avi')]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
-            answer.append({'type': 'text', 'text': 'Nobody here today.'})
+            answer.append({'type': 'text', 'text': 'Nobody was here today.'})
         else:
             # If there was a detection today, get the last frame
             lastframepath = os.path.join(todaypath, detections[0])
@@ -292,7 +295,7 @@ class Base:
             if light > 0.3:
                 people = list()
                 answer.append({'type': 'text', 'text': 'Someone is here!'})
-                # Check frames from recent to older and try to find a person, skipping 5 by 5
+                # Check frames from recent to older and try to find a person, skipping 10 by 10
                 for i in range(0, len(detections), 10):
                     detection = detections[i]
                     # Get frame
@@ -377,6 +380,51 @@ class Base:
             answer.append({'type': 'text', 'text': '%s deactivated' % (feature.capitalize())})
         else:
             answer.append({'type': 'text', 'text': 'Unknown error...'})
+
+        return answer
+    
+    def activity_graph(self, message, message_data, answer):
+        """
+        Post process activity_graph intent
+        Generates daily activity graph
+        """
+        # Get path to todays' detections
+        now = datetime.datetime.now()
+        todaypath = '/'.join(('..', 'detected', str(now.year), str(now.month) + '. ' + now.strftime('%B'), str(now.day)))
+        # Get paths for all frames detected today
+        detections = list()
+        for (_, _, filenames) in os.walk(todaypath):
+            detections.extend(filenames)
+            break
+        detections.sort(reverse=True)
+        detections = [d for d in detections if not d.endswith('.avi')]
+        start_time = detections[-1]
+        # If no detection was made today, infer that nobody went to the lab
+        if len(detections) == 0:
+            answer.append({'type': 'text', 'text': 'Nobody was here today.'})
+        else:
+            message = ''
+            counts = numpy.zeros(24*60*60)
+            # Check frames from recent to older and accumulate counts
+            for i in range(0, len(detections)):
+                t = detections[i]
+                h = int(t.split()[1].split('h')[0])
+                m = int(t.split()[1].split('h')[1].split('m')[0])
+                s = int(t.split()[1].split('h')[1].split('m')[1].split('.')[0])
+                counts[3600*h + 60*m + s] += 1
+            offset = 3600*h + 60*m + s
+            counts = numpy.trim_zeros(counts)
+            xaxis = numpy.arange(offset, offset + len(counts))
+            # Generate graph
+            fig, ax = plt.subplots()
+            ax.plot(xaxis, counts)
+            ax.set(xlabel='Time (s)', ylabel='Detections', title='Activity Graph')
+            formatter = matplotlib.ticker.FuncFormatter(lambda s, x: '%02d:%02d' % (s//3600,(s%3600)//60))
+            ax.xaxis.set_major_formatter(formatter)
+            fig.savefig(".activity.png", dpi=300, bbox_inches='tight')
+            # Answer with graph
+            answer.append({'type': 'text', 'text': 'This was the activity today'})
+            answer.append({'type': 'image', 'url': '.activity.png'})
 
         return answer
 
