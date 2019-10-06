@@ -28,7 +28,7 @@ if sys.platform == "linux" or sys.platform == "linux2":
                             'face-recognition' : 'Face detection and recognition' }
 
 # Load Cascade Classifiers for upperbody and face
-CASCADE_UPPERBODY = cv2.CascadeClassifier("resources/cascades/lbpcascade_frontalface_improved.xml")
+CASCADE_UPPERBODY = cv2.CascadeClassifier("resources/cascades/haarcascade_upperbody.xml")
 CASCADE_FACE = cv2.CascadeClassifier("resources/cascades/lbpcascade_frontalface_improved.xml")
 CASCADE_PROFILE_FACE = cv2.CascadeClassifier("resources/cascades/haarcascade_profileface.xml")
 
