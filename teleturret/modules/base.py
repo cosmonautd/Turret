@@ -21,7 +21,7 @@ import botkit.nlu
 import botkit.answer
 
 # Load Cascade Classifiers for upperbody
-CASCADE_UPPERBODY = cv2.CascadeClassifier("../resources/cascades/haarcascade_mcs_upperbody.xml")
+CASCADE_UPPERBODY = cv2.CascadeClassifier("../resources/cascades/haarcascade_upperbody.xml")
 
 def log(m):
     print(m)

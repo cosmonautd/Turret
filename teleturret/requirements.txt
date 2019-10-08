@@ -1,0 +1,7 @@
+numpy
+scipy
+scikit-image
+scikit-learn
+dlib
+opencv-python
+python-telegram-bot
