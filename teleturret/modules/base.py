@@ -152,7 +152,7 @@ class Base:
             detections.extend(filenames)
             break
         detections.sort(reverse=True)
-        detections = [d for d in detections if not d.endswith('.avi')]
+        detections = [d for d in detections if not d.endswith('.log')]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
             answer.append({'type': 'text', 'text': 'Nobody was here today.'})
@@ -184,7 +184,7 @@ class Base:
             detections.extend(filenames)
             break
         detections.sort(reverse=True)
-        detections = [d for d in detections if not d.endswith('.avi')]
+        detections = [d for d in detections if not d.endswith('.log')]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
             answer.append({'type': 'text', 'text': 'Nobody was here today.'})
@@ -235,7 +235,7 @@ class Base:
             detections.extend(filenames)
             break
         detections.sort(reverse=True)
-        detections = [d for d in detections if not d.endswith('.avi')]
+        detections = [d for d in detections if not d.endswith('.log')]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
             answer.append({'type': 'text', 'text': 'Nobody was here today.'})
@@ -282,7 +282,7 @@ class Base:
             detections.extend(filenames)
             break
         detections.sort(reverse=True)
-        detections = [d for d in detections if not d.endswith('.avi')]
+        detections = [d for d in detections if not d.endswith('.log')]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
             answer.append({'type': 'text', 'text': 'Nobody was here today.'})
@@ -361,7 +361,7 @@ class Base:
             detections.extend(filenames)
             break
         detections.sort(reverse=True)
-        detections = [d for d in detections if not d.endswith('.avi')]
+        detections = [d for d in detections if not d.endswith('.log')]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
             answer.append({'type': 'text', 'text': 'Nobody was here today.'})
@@ -460,7 +460,7 @@ class Base:
             detections.extend(filenames)
             break
         detections.sort(reverse=True)
-        detections = [d for d in detections if not d.endswith('.avi')]
+        detections = [d for d in detections if not d.endswith('.log')]
         # If no detection was made today, infer that nobody went to the lab
         if len(detections) == 0:
             answer.append({'type': 'text', 'text': 'Nobody was here today.'})

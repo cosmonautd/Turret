@@ -313,7 +313,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, sigint_handler)
 
     # Convert detections to video every day
-    convert_to_video()
+    # convert_to_video()
 
     # Execute GUI or CLI
     if GUI:

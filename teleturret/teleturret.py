@@ -8,16 +8,22 @@
 import os
 import sys
 import json
+import time
 import logging
 import requests
 import datetime
 import threading
+import multiprocessing
 
 # External imports
 import cv2
 import numpy
+import scipy
 import telegram
 import telegram.ext
+import face_recognition as fc
+import matplotlib
+import matplotlib.pyplot as plt
 
 # Project imports
 import botkit.nlu
@@ -38,7 +44,7 @@ link = dict()
 for m in online_modules:
     for i in m.link.answer_processor.intents:
         link[i] = m.link.answer_processor
-        log("Loaded intent:" + i)
+        log("Loaded intent: " + i)
 
 def loadconfig():
     """
@@ -155,8 +161,8 @@ def notifications():
         detections.extend(filenames)
         break
     detections.sort(reverse=True)
-    detections = [d for d in detections if not d.endswith('.avi')]
-    # If no detection was made today
+    detections = [d for d in detections if not d.endswith('.log')]
+    # If a detection was made today
     if len(detections) > 0:
         # If there was a detection today, get the last frame
         lastframepath = os.path.join(todaypath, detections[0])
@@ -188,6 +194,122 @@ def notifications_loop():
     nt_timer.setDaemon(True)
     nt_timer.start()
 notifications_loop()
+
+database = None
+facedatabase = None
+facedatabase_names = None
+facedatabase_encodings = None
+fraction = 1.0
+# Set up recognizer if not ready
+if (not database) or (not facedatabase) or (not facedatabase_encodings):
+    database = list()
+    for (_, _, filenames) in os.walk('faces'):
+        database.extend(filenames)
+        break
+    database = sorted(database)
+    facedatabase = [fc.load_image_file(os.path.join('faces', name)) for name in database]
+    facedatabase_names = [name.split('.')[0] for name in database]
+    facedatabase_encodings = [fc.face_encodings(face)[0] for face in facedatabase]
+
+def face_recognition(t_datetime):
+    """ Face recognition
+    """
+    nkeyframes = 10
+    # Get path to todays' activity log
+    Y, M, M_str, D = t_datetime.year, t_datetime.month, t_datetime.strftime('%B'), t_datetime.day
+    h, m, s = t_datetime.hour, t_datetime.minute, t_datetime.second
+    todaypath = '/'.join(('..', 'detected', str(Y), str(M) + '. ' + M_str, str(D)))
+    for ms in range(1000):    
+        hms = str(t_datetime)[:10] + ' ' + '%02d'%(h) + 'h' + '%02d'%(m) + 'm' + '%02d.%03d'%(s,ms) + 's' + '.jpg'
+        baseframepath = os.path.join(todaypath, hms)
+        if os.path.exists(baseframepath):
+            break
+    # Get paths for all frames detected today
+    detections = list()
+    for (_, _, filenames) in os.walk(todaypath):
+        detections.extend(filenames)
+        break
+    detections = [d for d in detections if not d.endswith('.log')]
+    detections.sort()
+    baseindex = detections.index(hms)
+    keyframespaths = detections[baseindex-nkeyframes:baseindex+nkeyframes]
+    votes = numpy.zeros(len(database))
+    unknown_count = 0
+    # Loop through key frames
+    for keyframepath in keyframespaths:
+        framepath = os.path.join(todaypath, keyframepath)
+        frame = cv2.imread(framepath)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = cv2.resize(frame, (0, 0), fx=fraction, fy=fraction)
+        face_locations = fc.face_locations(frame)
+        if len(face_locations) > 0:
+            face_encodings = fc.face_encodings(frame, face_locations)
+            for face_encoding in face_encodings:
+                results = fc.compare_faces(facedatabase_encodings, face_encoding, tolerance=0.5)
+                if True in results:
+                    for i, r in enumerate(results):
+                        if r: votes[i] += 1
+                else: unknown_count += 1
+    if numpy.max(votes) > unknown_count:
+        detected_name = facedatabase_names[numpy.argmax(votes)]
+    else: detected_name = 'Unknown'
+
+    context = botkit.nlu.Context()
+    if not context.has_key('@teleturretbot', 'activity'):
+        context.write('@teleturretbot', 'activity', {})
+    activity = context.read('@teleturretbot', 'activity')
+    name = detected_name
+    time = '%04d/%02d/%02d %02d:%02d:%02d' % (Y,M,D,h,m,s)
+    activity[time] = name
+    context.write('@teleturretbot', 'activity', activity)
+    time_str = str(t_datetime)[:19]
+    log('%s %s' % (time_str, name))
+
+def event_detection():
+    time_window = 8
+    while True:
+        # Get path to todays' activity log
+        now = datetime.datetime.now()
+        Y, M, M_str, D = now.year, now.month, now.strftime('%B'), now.day
+        logpath = '/'.join(('..', 'detected', str(Y), str(M) + '. ' + M_str, str(D), 'activity.log'))
+        if os.path.exists(logpath):
+            with open(logpath, 'r') as activity_log:
+                activity_times = [line.split()[1] for line in activity_log.readlines()]
+                counts = numpy.zeros(time_window)
+                # Check activity and accumulate counts
+                for t in activity_times[::-1]:
+                    h = int(t.split(':')[0])
+                    m = int(t.split(':')[1])
+                    s = int(t.split(':')[2])
+                    t_datetime = datetime.datetime(Y, M, D, h, m, s, 0)
+                    shift_datetime = now - t_datetime
+                    if shift_datetime < datetime.timedelta(seconds=time_window):
+                        index = shift_datetime.seconds
+                        counts[index] += 1
+                # Identify peaks
+                peaks, _ = scipy.signal.find_peaks(counts, height=3, distance=3)
+                xaxis = numpy.arange(0, len(counts))
+                # Generate graph
+                fig, ax = plt.subplots()
+                ax.plot(xaxis, counts)
+                ax.plot(peaks, counts[peaks], "x")
+                ax.set(xlabel='Time', ylabel='Detections', title='Activity Graph')
+                # formatter = matplotlib.ticker.FuncFormatter(lambda s, x: '%02d:%02d' % (s//3600,(s%3600)//60))
+                # ax.xaxis.set_major_formatter(formatter)
+                fig.savefig(".activity-tmp.png", dpi=300, bbox_inches='tight')
+                plt.close()
+                if len(peaks) > 0:
+                    for peak in peaks:
+                        activity_peak_datetime = now - datetime.timedelta(seconds=int(peak))
+                        face_recognition_process = multiprocessing.Process(target=face_recognition, args=(activity_peak_datetime,))
+                        face_recognition_process.start()
+                        
+            time.sleep(7)
+        else:
+            time.sleep(60)
+
+event_detection_process = multiprocessing.Process(target=event_detection, args=())
+event_detection_process.start()
 
 # Load config file
 config = loadconfig()
