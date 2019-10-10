@@ -18,7 +18,7 @@ import cv2
 CV_CAP_PROP_POS_FRAMES = 1
 CV_CAP_PROP_FRAME_COUNT = 7
 
-def save(img, img_time, uploadqueue=None):
+def save(img, img_time):
     """Save images to disc or a Google Drive account.
 
         Save an image in a hierarchical structure inside the detected/
@@ -36,34 +36,40 @@ def save(img, img_time, uploadqueue=None):
 
     """
 
-    if os.path.exists("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day)))):
-        cv2.imwrite("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day), str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] \
-                                                                                                                                                                                            + "m" + str(img_time)[17:23] + "s" + ".jpg")), img) 
-    elif os.path.exists("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B')))):
-        os.mkdir("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day))))
-        cv2.imwrite("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day), str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] \
-                                                                                                                                                                                            + "m" + str(img_time)[17:23] + "s" + ".jpg")), img) 
-    elif os.path.exists("/".join(("detected", str(img_time.year)))):
-        os.mkdir("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'))))
-        os.mkdir("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day))))
-        cv2.imwrite("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day), str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] \
-                                                                                                                                                                                            + "m" + str(img_time)[17:23] + "s" + ".jpg")), img) 
+    Y = img_time.year
+    M = img_time.month
+    M_str = img_time.strftime('%B')
+    D = img_time.day
+    h = img_time.hour
+    m = img_time.minute
+    s = img_time.second
+    ms = img_time.microsecond//1000
+    hms = str(img_time)[:10] + ' ' + '%02d'%(h) + 'h' + '%02d'%(m) + 'm' + '%02d.%03d'%(s,ms) + 's' + '.jpg'
+
+    if os.path.exists("/".join(("detected", str(Y), str(M) + ". " + M_str, str(D)))):
+        cv2.imwrite("/".join(("detected", str(Y), str(M) + ". " + M_str, str(D), hms)), img)
+    elif os.path.exists("/".join(("detected", str(Y), str(M) + ". " + M_str))):
+        os.mkdir("/".join(("detected", str(Y), str(M) + ". " + M_str, str(D))))
+        cv2.imwrite("/".join(("detected", str(Y), str(M) + ". " + M_str, str(D), hms)), img)
+    elif os.path.exists("/".join(("detected", str(Y)))):
+        os.mkdir("/".join(("detected", str(Y), str(M) + ". " + M_str)))
+        os.mkdir("/".join(("detected", str(Y), str(M) + ". " + M_str, str(D))))
+        cv2.imwrite("/".join(("detected", str(Y), str(M) + ". " + M_str, str(D), hms)), img)
     elif os.path.exists("detected"):
-        os.mkdir("/".join(("detected", str(img_time.year))))
-        os.mkdir("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'))))
-        os.mkdir("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day))))
-        cv2.imwrite("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day), str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] \
-                                                                                                                                                                                            + "m" + str(img_time)[17:23] + "s" + ".jpg")), img) 
+        os.mkdir("/".join(("detected", str(Y))))
+        os.mkdir("/".join(("detected", str(Y), str(M) + ". " + M_str)))
+        os.mkdir("/".join(("detected", str(Y), str(M) + ". " + M_str, str(D))))
+        cv2.imwrite("/".join(("detected", str(Y), str(M) + ". " + M_str, str(D), hms)), img)
     else:
         os.mkdir("detected")
-        os.mkdir("/".join(("detected", str(img_time.year))))
-        os.mkdir("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'))))
-        os.mkdir("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day))))
-        cv2.imwrite("/".join(("detected", str(img_time.year), str(img_time.month) + ". " + img_time.strftime('%B'), str(img_time.day), str(img_time)[:10] + " " + str(img_time)[11:13] + "h" + str(img_time)[14:16] \
-                                                                                                                                                                                            + "m" + str(img_time)[17:23] + "s" + ".jpg")), img) 
-
-    if uploadqueue:
-        uploadqueue.append(img_time)
+        os.mkdir("/".join(("detected", str(Y))))
+        os.mkdir("/".join(("detected", str(Y), str(M) + ". " + M_str)))
+        os.mkdir("/".join(("detected", str(Y), str(M) + ". " + M_str, str(D))))
+        cv2.imwrite("/".join(("detected", str(Y), str(M) + ". " + M_str, str(D), hms)), img)
+    
+    with open("/".join(("detected", str(Y), str(M) + ". " + M_str, str(D), "activity.log")), "a") as activity_log:
+        activity_log.write('%04d/%02d/%02d %02d:%02d:%02d\n' % (Y,M,D,h,m,s))
+                                                                                                                                                                                            
 
 def video(time_, fps=30):
     """
