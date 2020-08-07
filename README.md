@@ -3,6 +3,8 @@
 
 This project was started with the purpose of monitoring movement of personnel in the research laboratory I worked at. I did most of the software design and implementation during my supervised internship at the Federal University of Ceará. Turret processes video input from a camera, identifies movement frames, performs face detection and records the moments in which people are passing through the entrances/exits. Besides, I implemented a chatbot module that answers to questions asked via Telegram by using natural language processing. For example, there is support for questions and commands like "Who was in the lab today?" or "Hi, Turret, send me the report for today".
 
+Inspired by the turrets from Portal :)
+
 <img src="https://davidborges.xyz/assets/turret1.jpg" alt="Who's there?" width="300"/> <img src="https://davidborges.xyz/assets/turret2.jpg" alt="Who's there again?" width="300"/>
 
 <img src="https://davidborges.xyz/assets/turret3.jpg" alt="Is someone there?" width="300"/> <img src="https://davidborges.xyz/assets/turret4.jpg" alt="Daily Activity" width="300"/>
