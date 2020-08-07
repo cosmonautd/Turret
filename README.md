@@ -28,7 +28,7 @@ pip3 install --user pygame Pillow face_recognition
 
 Install OpenCV for Python 3
 
-Try https://stackoverflow.com/questions/37188623/ubuntu-how-to-install-opencv-for-python3
+Try [this](https://stackoverflow.com/questions/37188623/ubuntu-how-to-install-opencv-for-python3).
 
 
 #### Arch/Manjaro
