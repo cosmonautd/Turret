@@ -52,4 +52,21 @@ cd botkit
 ./install.sh
 ```
 
-Besides that, you must set up a file called config.json
+Besides that, you must set up a file called config.json, containing the Telegram API key for your bot and a list of allowed usernames.
+Only these users will be able to talk with the bot.
+The file has the following structure:
+
+```
+{
+    "keys": {
+        "telegram" : {
+            "teleturretbot": TELEGRAM_API_KEY
+        }
+    },
+
+    "allowed": [
+        "@username1",
+        "@username2"
+    ]
+}
+```
